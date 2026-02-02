@@ -14,7 +14,10 @@
                     <field name="cheque_reference"/>
                     <field name="amount" sum="Total Amount"/>
                     <field name="giro_account_id"/>
-                    <field name="state" widget="badge" decoration-info="state=='draft'" decoration-success="state=='confirmed'" decoration-danger="state=='cancelled'"/>
+                    <field name="is_cleared" widget="boolean" optional="show"/>
+                    <field name="is_reversed" widget="boolean" optional="show"/>
+                    <field name="is_clearing_reversed" widget="boolean" optional="show"/>
+                    <field name="state" widget="badge" decoration-info="state=='draft'" decoration-success="state in ['confirmed', 'cleared']" decoration-warning="state in ['reversed', 'clearing_reversed']" decoration-danger="state=='cancelled'"/>
                     <field name="company_id" groups="base.group_multi_company"/>
                 </list>
             </field>
@@ -31,6 +34,10 @@
                                 class="oe_highlight" 
                                 invisible="state != 'draft'" 
                                 data-hotkey="q"/>
+                        <button name="action_clearing" string="Clearing" type="object" 
+                                class="oe_highlight" 
+                                invisible="state != 'confirmed' or is_cleared" 
+                                data-hotkey="c"/>
                         <button name="action_draft" string="Reset To Draft" type="object" 
                                 class="btn btn-secondary"
                                 invisible="state == 'draft'" 
@@ -39,7 +46,17 @@
                                 invisible="state != 'draft'" 
                                 confirm="Are you sure you want to cancel this giro?"
                                 data-hotkey="x"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                        <button name="action_reverse_giro" string="Reverse Giro" type="object" 
+                                class="btn btn-warning"
+                                invisible="state not in ['confirmed' , 'clearing_reversed'] or is_reversed" 
+                                confirm="Are you sure you want to reverse this giro entry?"
+                                data-hotkey="r"/>
+                        <button name="action_reverse_clearing" string="Reverse Clearing" type="object" 
+                                class="btn btn-warning"
+                                invisible="state not in ['cleared', 'reversed']" 
+                                confirm="Are you sure you want to reverse the clearing entry?"
+                                data-hotkey="v"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cleared,clearing_reversed,reversed,cancelled"/>
                     </header>
                     <sheet>
                         <!-- Invisible fields -->
@@ -47,6 +64,9 @@
                         <field name="currency_id" invisible="1"/>
                         <field name="company_id" invisible="1"/>
                         <field name="partner_type" invisible="1"/>
+                        <field name="is_cleared" invisible="1"/>
+                        <field name="is_reversed" invisible="1"/>
+                        <field name="is_clearing_reversed" invisible="1"/>
 
                         <div class="oe_button_box" name="button_box">
                             <!-- Journal Entry button -->
@@ -60,6 +80,41 @@
                                     <span class="o_stat_text">Journal Entry</span>
                                 </div>
                             </button>
+                            <!-- Clearing Journal Entry button -->
+                            <button name="button_open_clearing_entry"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-bank"
+                                    invisible="not clearing_move_id"
+                                    groups="account.group_account_user,account.group_account_readonly">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Clearing Entry</span>
+                                </div>
+                            </button>
+
+                            <!-- Reverse Clearing Entry button -->
+                            <button name="button_open_reverse_clearing_entry"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-undo"
+                                    invisible="not reverse_clearing_move_id or not is_clearing_reversed"
+                                    groups="account.group_account_user,account.group_account_readonly">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Reverse Clearing</span>
+                                </div>
+                            </button>
+                            <!-- Reverse Giro Entry button -->
+                            <button name="button_open_reverse_entry"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-undo"
+                                    invisible="not reverse_move_id or not is_reversed"
+                                    groups="account.group_account_user,account.group_account_readonly">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Reverse Entry</span>
+                                </div>
+                            </button>
+                            
                         </div>
 
 
@@ -103,10 +158,25 @@
                                 <field name="giro_account_id" 
                                        options="{'no_create': True, 'no_create_edit': True}"
                                        readonly="state != 'draft'"/>
+                                <field name="journal_bank_id" 
+                                       options="{'no_create': True, 'no_create_edit': True}"
+                                       readonly="state != 'draft'"/>
+                                <field name="bank_account_id" 
+                                       readonly="1"
+                                       invisible="not bank_account_id"/>
                                 <field name="cheque_reference"
                                        readonly="state != 'draft'"/>
                                 <field name="account_move_id" readonly="1" 
                                        invisible="not account_move_id"
+                                       options="{'no_create': True}"/>
+                                <field name="clearing_move_id" readonly="1" 
+                                       invisible="not clearing_move_id"
+                                       options="{'no_create': True}"/>
+                                <field name="reverse_move_id" readonly="1" 
+                                       invisible="not reverse_move_id"
+                                       options="{'no_create': True}"/>
+                                <field name="reverse_clearing_move_id" readonly="1" 
+                                       invisible="not reverse_clearing_move_id"
                                        options="{'no_create': True}"/>
                                 <field name="company_id" groups="base.group_multi_company" 
                                        options="{'no_create': True}"
@@ -138,7 +208,16 @@
                     <separator/>
                     <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                    <filter string="Cleared" name="cleared" domain="[('state', '=', 'cleared')]"/>
+                    <filter string="Reversed" name="state_reversed" domain="[('state', '=', 'reversed')]"/>
+                    <filter string="Clearing Reversed" name="state_clearing_reversed" domain="[('state', '=', 'clearing_reversed')]"/>
                     <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                    <separator/>
+                    <filter string="Reversed" name="reversed" domain="[('is_reversed', '=', True)]"/>
+                    <filter string="Clearing Reversed" name="clearing_reversed" domain="[('is_clearing_reversed', '=', True)]"/>
+                    <separator/>
+                    <filter string="Cleared" name="cleared" domain="[('is_cleared', '=', True)]"/>
+                    <filter string="Not Cleared" name="not_cleared" domain="[('is_cleared', '=', False), ('state', '=', 'confirmed')]"/>
                     <separator/>
                     <filter string="Customer" name="customer" domain="[('partner_type', '=', 'customer')]"/>
                     <filter string="Vendor" name="vendor" domain="[('partner_type', '=', 'vendor')]"/>
@@ -148,6 +227,7 @@
                         <filter string="Partner" name="group_partner" context="{'group_by': 'partner_id'}"/>
                         <filter string="Partner Type" name="group_partner_type" context="{'group_by': 'partner_type'}"/>
                         <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Cleared" name="group_cleared" context="{'group_by': 'is_cleared'}"/>
                         <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
                         <filter string="Giro Account" name="group_giro_account" context="{'group_by': 'giro_account_id'}"/>
                     </group>

@@ -18,7 +18,7 @@ SWA Accounting
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'stock', 'account'],
+    'depends': ['base', 'stock', 'account', 'mrp'],
 
     # always loaded
     'data': [
@@ -27,6 +27,9 @@ SWA Accounting
         'views/views.xml',
         'views/templates.xml',
         'views/giro_input_views.xml',
+        'views/product_category_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/mrp_production_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

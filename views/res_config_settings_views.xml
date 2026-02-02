@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_swa_acc" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.swa_acc</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="mrp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='mrp']" position="inside">
+                 <block title="Accounting" id="mrp_accounting_settings">
+                     <setting string="Automated Accounting Entries" help="Automatically create picking and RAF journal entries upon production.">
+                        <field name="az_calculate_raf_pick_account_automate"/>
+                     </setting>
+                 </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

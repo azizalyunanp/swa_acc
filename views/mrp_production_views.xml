@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_view_inherit_swa_acc" model="ir.ui.view">
+        <field name="name">mrp.production.form.view.inherit.swa_acc</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_az_account_moves"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-usd"
+                        
+                   >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Journal Entries</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>
