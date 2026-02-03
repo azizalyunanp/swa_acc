@@ -8,8 +8,9 @@ class MrpProduction(models.Model):
     
     def button_mark_done(self):
         res = super(MrpProduction, self).button_mark_done()
+        is_automated = self.env['ir.config_parameter'].sudo().get_param('swa_acc.az_calculate_raf_pick_account_automate') == 'True'
         for production in self:
-            if production.company_id.az_calculate_raf_pick_account_automate:
+            if is_automated:
                 production._create_raf_pick_entries()
         return res
 

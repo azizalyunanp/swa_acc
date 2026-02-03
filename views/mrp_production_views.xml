@@ -10,8 +10,7 @@
                         type="object"
                         class="oe_stat_button"
                         icon="fa-usd"
-                        
-                   >
+                        invisible="not az_account_move_ids">
                     <div class="o_stat_info">
                         <span class="o_stat_text">Journal Entries</span>
                     </div>

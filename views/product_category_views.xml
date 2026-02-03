@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Inherit dari view account (jika ada) -->
     <record id="view_category_property_form_inherit_swa_acc" model="ir.ui.view">
-        <field name="name">product.category.property.form.inherit.swa_acc</field>
+        <field name="name">product.category.property.form.inherit.swa_acc.mrp.account</field>
         <field name="model">product.category</field>
         <field name="inherit_id" ref="account.view_category_property_form"/>
         <field name="arch" type="xml">
             <group name="account_property" position="inside">
-                <group string="Manufacturing Accounting" name="mrp_accounting">
+                <group string="Manufacturing Accounting (User Defined)" name="mrp_accounting">
                     <field name="az_property_raw_material_account_id"/>
                     <field name="az_property_raf_account_id"/>
                     <field name="az_property_wip_account_id"/>
                 </group>
             </group>
+        </field>
+    </record>
+
+    <!-- Tambahkan field stock valuation ke form utama -->
+    <record id="view_product_category_form_inherit_stock_valuation" model="ir.ui.view">
+        <field name="name">product.category.form.inherit.stock.valuation</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <!-- Tambahkan group baru setelah field parent_id atau di akhir sheet -->
+            <xpath expr="//sheet" position="inside">
+                <group string="Stock Valuation Accounts" name="stock_valuation_accounts">
+                    <group>
+                        <field name="property_stock_valuation_account_id" 
+                               groups="account.group_account_readonly"/>
+                        <field name="property_stock_account_input_categ_id" 
+                               groups="account.group_account_readonly"/>
+                        <field name="property_stock_account_output_categ_id" 
+                               groups="account.group_account_readonly"/>
+                    </group>
+                </group>
+            </xpath>
         </field>
     </record>
 </odoo>

@@ -18,7 +18,7 @@ SWA Accounting
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'stock', 'account', 'mrp'],
+    'depends': ['base', 'stock', 'account', 'mrp','stock_account'],
 
     # always loaded
     'data': [
