@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menambahkan Menu 'User Defined' di dalam menu Reporting (account.menu_finance_reports) -->
+    <!-- Parent diambil dari module 'account' yaitu 'account.menu_finance_reports' yang juga digunakan oleh base_accounting_kit -->
+    
+    <menuitem id="menu_user_defined_reports"
+              name="User Defined"
+              parent="account.menu_finance_reports"
+              sequence="50"/>
+
+</odoo>

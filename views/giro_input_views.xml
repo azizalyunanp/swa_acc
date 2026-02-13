@@ -252,10 +252,15 @@
         </record>
 
         <!-- Menu Items -->
-        <menuitem id="menu_giro_input"
-                  name="Giro Input"
+        <menuitem id="action_menu_user_defined"
+                  name="User Defined"
                   parent="account.menu_finance_entries"
+                  sequence="500"/>
+
+        <menuitem id="action_menu_giro_input"
+                  name="Giro Input"
+                  parent="swa_acc.action_menu_user_defined"
                   action="action_giro_input"
-                  sequence="110"/>
+                  sequence="100"/>
     </data>
 </odoo>

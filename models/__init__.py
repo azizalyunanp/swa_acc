@@ -8,3 +8,4 @@ from . import product_category
 from . import res_config_settings
 from . import mrp_production
 from . import mrp_wip_accounting
+from . import trial_balance_wizard

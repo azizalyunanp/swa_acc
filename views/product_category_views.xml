@@ -16,7 +16,7 @@
         </field>
     </record>
 
-    <!-- Tambahkan field stock valuation ke form utama -->
+   
     <record id="view_product_category_form_inherit_stock_valuation" model="ir.ui.view">
         <field name="name">product.category.form.inherit.stock.valuation</field>
         <field name="model">product.category</field>
@@ -38,4 +38,5 @@
             </xpath>
         </field>
     </record>
+    
 </odoo>
