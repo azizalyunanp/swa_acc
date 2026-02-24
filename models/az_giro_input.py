@@ -92,9 +92,9 @@ class AzGiroInput(models.Model):
     bank_account_id = fields.Many2one(
         'account.account',
         string='Bank Account',
-        related='journal_bank_id.default_account_id',
-        readonly=True,
-        store=True
+        domain=[('account_type', '=', 'asset_cash')],
+        tracking=True,
+        states={'confirmed': [('readonly', True)], 'cancelled': [('readonly', True)]}
     )
     
     clearing_move_id = fields.Many2one(
@@ -211,7 +211,14 @@ class AzGiroInput(models.Model):
     def create(self, vals):
         """Override create to generate sequence"""
         if vals.get('name', _('New')) == _('New'):
-            vals['name'] = self.env['ir.sequence'].next_by_code('az.giro.input') or _('New')
+            # Check if sequence exists and is properly configured
+            sequence = self.env['ir.sequence'].search([('code', '=', 'az.giro.input'), ('company_id', '=', self.env.company.id)], limit=1)
+            if not sequence:
+                raise UserError(_('Sequence "az.giro.input" not found. Please configure the sequence first in Settings > Sequences & Identifiers.'))
+            if not sequence.prefix and not sequence.suffix:
+                raise UserError(_('Sequence "az.giro.input" is not properly configured. Please set at least a prefix or suffix in Settings > Sequences & Identifiers.'))
+
+            vals['name'] = sequence.next_by_code('az.giro.input') or _('New')
         return super(AzGiroInput, self).create(vals)
 
     def action_confirm(self):
