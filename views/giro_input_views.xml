@@ -161,7 +161,7 @@
                                 <field name="journal_bank_id" 
                                        options="{'no_create': True, 'no_create_edit': True}"
                                        readonly="state != 'draft'"/>
-                                <field name="bank_account_id" />
+                                <field name="bank_account_id" readonly="state != 'draft'"/>
                                 <field name="cheque_reference"
                                        readonly="state != 'draft'"/>
                                 <field name="account_move_id" readonly="1" 
