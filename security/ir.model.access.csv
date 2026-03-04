@@ -3,3 +3,13 @@ access_az_giro_input_user,az.giro.input.user,model_az_giro_input,account.group_a
 access_az_giro_input_manager,az.giro.input.manager,model_az_giro_input,account.group_account_manager,1,1,1,1
 access_swa_trial_balance_wizard,swa.trial.balance.wizard,model_swa_trial_balance_wizard,account.group_account_user,1,1,1,1
 access_swa_trial_balance_line,swa.trial.balance.line,model_swa_trial_balance_line,account.group_account_user,1,1,1,1
+access_az_mapping_account_foh_user,az.mapping.account.foh.user,model_az_mapping_account_foh,account.group_account_user,1,0,0,0
+access_az_mapping_account_foh_manager,az.mapping.account.foh.manager,model_az_mapping_account_foh,account.group_account_manager,1,1,1,1
+access_az_mapping_item_foh_user,az.mapping.item.foh.user,model_az_mapping_item_foh,account.group_account_user,1,0,0,0
+access_az_mapping_item_foh_manager,az.mapping.item.foh.manager,model_az_mapping_item_foh,account.group_account_manager,1,1,1,1
+access_az_item_foh_ratio_user,az.item.foh.ratio.user,model_az_item_foh_ratio,account.group_account_user,1,0,0,0
+access_az_item_foh_ratio_manager,az.item.foh.ratio.manager,model_az_item_foh_ratio,account.group_account_manager,1,1,1,1
+access_az_foh_calculation_user,az.foh.calculation.user,model_az_foh_calculation,account.group_account_user,1,0,0,0
+access_az_foh_calculation_manager,az.foh.calculation.manager,model_az_foh_calculation,account.group_account_manager,1,1,1,1
+access_az_foh_calculation_wizard_user,az.foh.calculation.wizard.user,model_az_foh_calculation_wizard,account.group_account_user,1,1,1,1
+access_az_foh_calculation_wizard_manager,az.foh.calculation.wizard.manager,model_az_foh_calculation_wizard,account.group_account_manager,1,1,1,1

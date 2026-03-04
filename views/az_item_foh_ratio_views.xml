@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         FOH Item Ratio - List View
+    ============================================================ -->
+    <record id="view_az_item_foh_ratio_list" model="ir.ui.view">
+        <field name="name">az.item.foh.ratio.list</field>
+        <field name="model">az.item.foh.ratio</field>
+        <field name="arch" type="xml">
+            <list string="FOH Item Ratio">
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="type"/>
+                <field name="ratio" digits="[16,4]"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Item Ratio - Form View
+    ============================================================ -->
+    <record id="view_az_item_foh_ratio_form" model="ir.ui.view">
+        <field name="name">az.item.foh.ratio.form</field>
+        <field name="model">az.item.foh.ratio</field>
+        <field name="arch" type="xml">
+            <form string="FOH Item Ratio">
+                <sheet>
+                    <group>
+                        <field name="product_id"/>
+                        <field name="product_name"/>
+                        <field name="type"/>
+                        <field name="ratio" digits="[16,4]"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Item Ratio - Search View
+    ============================================================ -->
+    <record id="view_az_item_foh_ratio_search" model="ir.ui.view">
+        <field name="name">az.item.foh.ratio.search</field>
+        <field name="model">az.item.foh.ratio</field>
+        <field name="arch" type="xml">
+            <search string="FOH Item Ratio">
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="type"/>
+                <filter string="None"      name="filter_none"      domain="[('type','=','none')]"/>
+                <filter string="Ratio"     name="filter_ratio"     domain="[('type','=','ratio')]"/>
+                <filter string="Gramasi"   name="filter_gramasi"   domain="[('type','=','gramasi')]"/>
+                <filter string="Squarepic" name="filter_squarepic" domain="[('type','=','squarepic')]"/>
+                <filter string="SWP"       name="filter_swp"       domain="[('type','=','swp')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="group_by_type" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Item Ratio - Action
+    ============================================================ -->
+    <record id="action_az_item_foh_ratio" model="ir.actions.act_window">
+        <field name="name">FOH Item Ratio</field>
+        <field name="res_model">az.item.foh.ratio</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_az_item_foh_ratio_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first FOH Item Ratio
+            </p>
+            <p>Define ratio per product for Factory Overhead (FOH) cost calculation.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu: Accounting > Configuration > User Defined > FOH > FOH Item Ratio
+         (parent menu_accounting_config_foh defined in az_mapping_account_foh_views.xml)
+    ============================================================ -->
+    <menuitem id="menu_az_item_foh_ratio"
+              name="FOH Item Ratio"
+              parent="swa_acc.menu_accounting_config_foh"
+              action="action_az_item_foh_ratio"
+              sequence="30"/>
+
+</odoo>

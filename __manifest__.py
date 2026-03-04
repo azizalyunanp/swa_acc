@@ -32,6 +32,11 @@ SWA Accounting
         'views/mrp_production_views.xml',
         'views/trial_balance_views.xml',
         'views/accounting_menu_inherit.xml',
+        'views/az_mapping_account_foh_views.xml',
+        'views/az_mapping_item_foh_views.xml',
+        'views/az_item_foh_ratio_views.xml',
+        'views/az_foh_calculation_wizard_views.xml',
+        'views/az_foh_calculation_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
@@ -41,6 +46,8 @@ SWA Accounting
     "assets": {
             "web.assets_backend": [
                 "swa_acc/static/src/css/**/*",
+                "swa_acc/static/src/js/foh_calculation_list_button.js",
+                "swa_acc/static/src/xml/foh_calculation_list_button.xml",
             ],
         },
 

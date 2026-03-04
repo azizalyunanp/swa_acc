@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         FOH Mapping Account - List View
+    ============================================================ -->
+    <record id="view_az_mapping_account_foh_list" model="ir.ui.view">
+        <field name="name">az.mapping.account.foh.list</field>
+        <field name="model">az.mapping.account.foh</field>
+        <field name="arch" type="xml">
+            <list string="FOH Mapping Account">
+                <field name="account_id"/>
+                <field name="account_name"/>
+                <field name="type"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Mapping Account - Form View
+    ============================================================ -->
+    <record id="view_az_mapping_account_foh_form" model="ir.ui.view">
+        <field name="name">az.mapping.account.foh.form</field>
+        <field name="model">az.mapping.account.foh</field>
+        <field name="arch" type="xml">
+            <form string="FOH Mapping Account">
+                <sheet>
+                    <group>
+                        <field name="account_id"/>
+                        <field name="account_name"/>
+                        <field name="type"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Mapping Account - Search View
+    ============================================================ -->
+    <record id="view_az_mapping_account_foh_search" model="ir.ui.view">
+        <field name="name">az.mapping.account.foh.search</field>
+        <field name="model">az.mapping.account.foh</field>
+        <field name="arch" type="xml">
+            <search string="FOH Mapping Account">
+                <field name="account_id"/>
+                <field name="account_name"/>
+                <field name="type"/>
+                <filter string="None"        name="filter_none"        domain="[('type','=','none')]"/>
+                <filter string="Electricity" name="filter_electricity" domain="[('type','=','electricity')]"/>
+                <filter string="Wage"        name="filter_wage"        domain="[('type','=','wage')]"/>
+                <filter string="Overtime"    name="filter_overtime"    domain="[('type','=','overtime')]"/>
+                <filter string="Others"      name="filter_others"      domain="[('type','=','others')]"/>
+                <filter string="Sparepart"   name="filter_sparepart"   domain="[('type','=','sparepart')]"/>
+                <filter string="Fuel"        name="filter_fuel"        domain="[('type','=','fuel')]"/>
+                <filter string="Depreciation" name="filter_depreciation" domain="[('type','=','depreciation')]"/>
+                <filter string="WorkOrder"   name="filter_work_order"  domain="[('type','=','work_order')]"/>
+                <filter string="Packing"     name="filter_packing"     domain="[('type','=','packing')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="group_by_type" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Mapping Account - Action
+    ============================================================ -->
+    <record id="action_az_mapping_account_foh" model="ir.actions.act_window">
+        <field name="name">FOH Mapping Account</field>
+        <field name="res_model">az.mapping.account.foh</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_az_mapping_account_foh_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first FOH Mapping Account
+            </p>
+            <p>Define account mappings for Factory Overhead (FOH) cost types.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu: Accounting > Configuration > User Defined > FOH > FOH Mapping Account
+    ============================================================ -->
+
+    <!-- Sub-menu: Configuration > User Defined (under Accounting > Configuration) -->
+    <menuitem id="menu_accounting_config_user_defined"
+              name="User Defined"
+              parent="account.menu_finance_configuration"
+              sequence="50"/>
+
+    <!-- Sub-menu: User Defined > FOH -->
+    <menuitem id="menu_accounting_config_foh"
+              name="FOH"
+              parent="menu_accounting_config_user_defined"
+              sequence="10"/>
+
+    <!-- Sub-menu: FOH > FOH Mapping Account -->
+    <menuitem id="menu_az_mapping_account_foh"
+              name="FOH Mapping Account"
+              parent="menu_accounting_config_foh"
+              action="action_az_mapping_account_foh"
+              sequence="10"/>
+
+</odoo>

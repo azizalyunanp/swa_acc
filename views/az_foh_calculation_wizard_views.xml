@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         FOH Calculation Wizard - Form View
+    ============================================================ -->
+    <record id="view_az_foh_calculation_wizard_form" model="ir.ui.view">
+        <field name="name">az.foh.calculation.wizard.form</field>
+        <field name="model">az.foh.calculation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="FOH Calculation">
+                <group>
+                    <group string="Period">
+                        <field name="from_date"/>
+                        <field name="to_date"/>
+                    </group>
+                    <group string="Parameters">
+                        <field name="company_id"/>
+                        <field name="location_id"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="calc_foh"
+                            type="object"
+                            string="Calculate FOH"
+                            class="btn-primary"/>
+                    <button string="Close"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Calculation Wizard - Action
+    ============================================================ -->
+    <record id="action_az_foh_calculation_wizard" model="ir.actions.act_window">
+        <field name="name">Calculate FOH</field>
+        <field name="res_model">az.foh.calculation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_az_foh_calculation_wizard_form"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         FOH Calculation - List View
+    ============================================================ -->
+    <record id="view_az_foh_calculation_list" model="ir.ui.view">
+        <field name="name">az.foh.calculation.list</field>
+        <field name="model">az.foh.calculation</field>
+        <field name="arch" type="xml">
+            <list string="FOH Calculation" js_class="foh_calculation_list">
+                <field name="trans_date"/>
+                <field name="location_id"/>
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="qty_raf" digits="[16,4]"/>
+                <field name="uom"/>
+                <field name="qty_raf_convert" digits="[16,4]"/>
+                <field name="uom_convert"/>
+                <field name="ratio" digits="[16,4]"/>
+                <field name="prod_equ" digits="[16,4]"/>
+                <field name="prod_equ_weight" digits="[16,4]"/>
+                <field name="percent_electricity" digits="[16,4]"/>
+                <field name="amount_electricity" digits="[16,2]"/>
+                <field name="percent_wage" digits="[16,4]"/>
+                <field name="amount_wage" digits="[16,2]"/>
+                <field name="percent_overtime" digits="[16,4]"/>
+                <field name="amount_overtime" digits="[16,2]"/>
+                <field name="percent_others" digits="[16,4]"/>
+                <field name="amount_others" digits="[16,2]"/>
+                <field name="percent_sparepart" digits="[16,4]"/>
+                <field name="amount_sparepart" digits="[16,2]"/>
+                <field name="percent_fuel" digits="[16,4]"/>
+                <field name="amount_fuel" digits="[16,2]"/>
+                <field name="percent_depreciation" digits="[16,4]"/>
+                <field name="amount_depreciation" digits="[16,2]"/>
+                <field name="percent_workorder" digits="[16,4]"/>
+                <field name="amount_workorder" digits="[16,2]"/>
+                <field name="percent_packing" digits="[16,4]"/>
+                <field name="amount_packing" digits="[16,2]"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Calculation - Form View
+    ============================================================ -->
+    <record id="view_az_foh_calculation_form" model="ir.ui.view">
+        <field name="name">az.foh.calculation.form</field>
+        <field name="model">az.foh.calculation</field>
+        <field name="arch" type="xml">
+            <form string="FOH Calculation">
+                <sheet>
+                    <!-- Product Info -->
+                    <group string="Product Information">
+                        <group>
+                            <field name="trans_date"/>
+                            <field name="location_id"/>
+                            <field name="product_id"/>
+                            <field name="product_name"/>
+                        </group>
+                        <group>
+                            <field name="qty_raf" digits="[16,4]"/>
+                            <field name="uom"/>
+                            <field name="qty_raf_convert" digits="[16,4]"/>
+                            <field name="uom_convert"/>
+                            <field name="ratio" digits="[16,4]"/>
+                            <field name="prod_equ" digits="[16,4]"/>
+                            <field name="prod_equ_weight" digits="[16,4]"/>
+                        </group>
+                    </group>
+                    <!-- FOH Cost Breakdown -->
+                    <group string="FOH Cost Breakdown">
+                        <group string="Electricity">
+                            <field name="percent_electricity" digits="[16,4]"/>
+                            <field name="amount_electricity" digits="[16,2]"/>
+                        </group>
+                        <group string="Wage">
+                            <field name="percent_wage" digits="[16,4]"/>
+                            <field name="amount_wage" digits="[16,2]"/>
+                        </group>
+                        <group string="Overtime">
+                            <field name="percent_overtime" digits="[16,4]"/>
+                            <field name="amount_overtime" digits="[16,2]"/>
+                        </group>
+                        <group string="Others">
+                            <field name="percent_others" digits="[16,4]"/>
+                            <field name="amount_others" digits="[16,2]"/>
+                        </group>
+                        <group string="Sparepart">
+                            <field name="percent_sparepart" digits="[16,4]"/>
+                            <field name="amount_sparepart" digits="[16,2]"/>
+                        </group>
+                        <group string="Fuel">
+                            <field name="percent_fuel" digits="[16,4]"/>
+                            <field name="amount_fuel" digits="[16,2]"/>
+                        </group>
+                        <group string="Depreciation">
+                            <field name="percent_depreciation" digits="[16,4]"/>
+                            <field name="amount_depreciation" digits="[16,2]"/>
+                        </group>
+                        <group string="Work Order">
+                            <field name="percent_workorder" digits="[16,4]"/>
+                            <field name="amount_workorder" digits="[16,2]"/>
+                        </group>
+                        <group string="Packing">
+                            <field name="percent_packing" digits="[16,4]"/>
+                            <field name="amount_packing" digits="[16,2]"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Calculation - Search View
+    ============================================================ -->
+    <record id="view_az_foh_calculation_search" model="ir.ui.view">
+        <field name="name">az.foh.calculation.search</field>
+        <field name="model">az.foh.calculation</field>
+        <field name="arch" type="xml">
+            <search string="FOH Calculation">
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="uom"/>
+                <field name="uom_convert"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Calculation - Action
+    ============================================================ -->
+    <record id="action_az_foh_calculation" model="ir.actions.act_window">
+        <field name="name">FOH Calculation</field>
+        <field name="res_model">az.foh.calculation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_az_foh_calculation_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first FOH Calculation
+            </p>
+            <p>Define Factory Overhead (FOH) cost breakdown per product.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu: Accounting > Configuration > User Defined > FOH > FOH Calculation
+         (parent menu_accounting_config_foh defined in az_mapping_account_foh_views.xml)
+    ============================================================ -->
+    <menuitem id="menu_az_foh_calculation"
+              name="FOH Calculation"
+              parent="swa_acc.menu_accounting_config_foh"
+              action="action_az_foh_calculation"
+              sequence="40"/>
+
+</odoo>
