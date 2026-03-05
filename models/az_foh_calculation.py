@@ -17,6 +17,11 @@ class AzFohCalculation(models.Model):
         string='Location',
         domain=[('usage', '=', 'internal')],
     )
+    company_id = fields.Many2one(
+        comodel_name='res.company',
+        string='Company',
+        default=lambda self: self.env.company,
+    )
     product_id = fields.Many2one(
         comodel_name='product.product',
         string='Product',
@@ -26,6 +31,11 @@ class AzFohCalculation(models.Model):
     product_name = fields.Char(
         string='Product Name',
         related='product_id.name',
+        readonly=True,
+    )
+    default_code = fields.Char(
+        string='Product Code',
+        related='product_id.default_code',
         readonly=True,
     )
     qty_raf = fields.Float(

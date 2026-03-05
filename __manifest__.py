@@ -37,6 +37,7 @@ SWA Accounting
         'views/az_item_foh_ratio_views.xml',
         'views/az_foh_calculation_wizard_views.xml',
         'views/az_foh_calculation_views.xml',
+        'views/az_foh_item_cost_price_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
@@ -48,6 +49,8 @@ SWA Accounting
                 "swa_acc/static/src/css/**/*",
                 "swa_acc/static/src/js/foh_calculation_list_button.js",
                 "swa_acc/static/src/xml/foh_calculation_list_button.xml",
+                "swa_acc/static/src/js/foh_item_cost_price_list_button.js",
+                "swa_acc/static/src/xml/foh_item_cost_price_list_button.xml",
             ],
         },
 

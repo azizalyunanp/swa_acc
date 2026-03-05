@@ -19,6 +19,11 @@ class AzItemFohRatio(models.Model):
         related='product_id.name',
         readonly=True,
     )
+    default_code = fields.Char(
+        string='Product Code',
+        related='product_id.default_code',
+        readonly=True,
+    )
     type = fields.Selection(
         selection=[
             ('none', 'None'),

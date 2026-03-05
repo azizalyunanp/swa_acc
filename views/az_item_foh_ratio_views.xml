@@ -9,7 +9,7 @@
         <field name="model">az.item.foh.ratio</field>
         <field name="arch" type="xml">
             <list string="FOH Item Ratio">
-                <field name="product_id"/>
+                <field name="default_code"/>
                 <field name="product_name"/>
                 <field name="type"/>
                 <field name="ratio" digits="[16,4]"/>

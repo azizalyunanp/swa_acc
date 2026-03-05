@@ -11,7 +11,8 @@
             <list string="FOH Calculation" js_class="foh_calculation_list">
                 <field name="trans_date"/>
                 <field name="location_id"/>
-                <field name="product_id"/>
+                <field name="company_id"/>
+                <field name="default_code"/>
                 <field name="product_name"/>
                 <field name="qty_raf" digits="[16,4]"/>
                 <field name="uom"/>
@@ -125,6 +126,10 @@
                 <field name="product_name"/>
                 <field name="uom"/>
                 <field name="uom_convert"/>
+                <filter name="my_company"
+                        string="My Company"
+                        domain="[('company_id', 'in', allowed_company_ids)]"
+                        invisible="1"/>
             </search>
         </field>
     </record>
@@ -136,6 +141,7 @@
         <field name="name">FOH Calculation</field>
         <field name="res_model">az.foh.calculation</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_my_company': 1}</field>
         <field name="search_view_id" ref="view_az_foh_calculation_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

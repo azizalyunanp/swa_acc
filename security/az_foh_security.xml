@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Multi-Company Record Rules
+         Uses 'company_ids' = env.companies.ids (currently selected
+         companies in the switcher) — same pattern as account.move
+    ============================================================ -->
+
+    <record id="az_foh_calculation_company_rule" model="ir.rule">
+        <field name="name">FOH Calculation: Multi-Company</field>
+        <field name="model_id" ref="model_az_foh_calculation"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">
+            ['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]
+        </field>
+    </record>
+
+    <record id="az_foh_item_cost_price_company_rule" model="ir.rule">
+        <field name="name">FOH Item Cost Price: Multi-Company</field>
+        <field name="model_id" ref="model_az_foh_item_cost_price"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">
+            ['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]
+        </field>
+    </record>
+
+</odoo>
