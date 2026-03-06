@@ -17,3 +17,7 @@ access_az_foh_item_cost_price_user,az.foh.item.cost.price.user,model_az_foh_item
 access_az_foh_item_cost_price_manager,az.foh.item.cost.price.manager,model_az_foh_item_cost_price,account.group_account_manager,1,1,1,1
 access_az_foh_item_cost_price_wizard_user,az.foh.item.cost.price.wizard.user,model_az_foh_item_cost_price_wizard,account.group_account_user,1,1,1,1
 access_az_foh_item_cost_price_wizard_manager,az.foh.item.cost.price.wizard.manager,model_az_foh_item_cost_price_wizard,account.group_account_manager,1,1,1,1
+access_az_foh_production_cost_user,az.foh.production.cost.user,model_az_foh_production_cost,account.group_account_user,1,0,0,0
+access_az_foh_production_cost_manager,az.foh.production.cost.manager,model_az_foh_production_cost,account.group_account_manager,1,1,1,1
+access_az_foh_generate_mrp_wizard_user,az.foh.generate.mrp.wizard.user,model_az_foh_generate_mrp_wizard,account.group_account_user,1,1,1,1
+access_az_foh_generate_mrp_wizard_manager,az.foh.generate.mrp.wizard.manager,model_az_foh_generate_mrp_wizard,account.group_account_manager,1,1,1,1

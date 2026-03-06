@@ -5,7 +5,10 @@
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
-            <div name="button_box" position="inside">
+
+            <!-- Stat Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- Journal Entries -->
                 <button name="action_view_az_account_moves"
                         type="object"
                         class="oe_stat_button"
@@ -15,7 +18,45 @@
                         <span class="o_stat_text">Journal Entries</span>
                     </div>
                 </button>
-            </div>
+
+                <!-- FOH Overview Print -->
+                <button name="print_az_foh_overview"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-print"
+                        invisible="not foh_production_cost_ids">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">FOH Overview</span>
+                    </div>
+                </button>
+
+                <!-- FOH Cost Count -->
+                <button name="action_view_foh_production_cost"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calculator"
+                        invisible="not foh_production_cost_ids">
+                    <field name="foh_production_cost_ids" widget="statinfo" string="FOH Cost"/>
+                </button>
+            </xpath>
+
+            <!-- FOH Calculation Tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="FOH Calculation" name="page_foh_calculation">
+                    <field name="foh_production_cost_ids"
+                           readonly="1"
+                           nolabel="1">
+                        <list string="FOH Calculation">
+                            <field name="trans_date"/>
+                            <field name="product_foh_default_code" string="FOH Code"/>
+                            <field name="product_name_foh" string="FOH Item"/>
+                            <field name="product_foh_qty" digits="[16,4]"/>
+                            <field name="cost_price_foh" digits="[16,2]"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
         </field>
     </record>
 </odoo>

@@ -2,51 +2,59 @@
 <odoo>
 
     <!-- ============================================================
-         FOH Item Cost Price - List View
+         FOH Production Cost - List View
     ============================================================ -->
-    <record id="view_az_foh_item_cost_price_list" model="ir.ui.view">
-        <field name="name">az.foh.item.cost.price.list</field>
-        <field name="model">az.foh.item.cost.price</field>
+    <record id="view_az_foh_production_cost_list" model="ir.ui.view">
+        <field name="name">az.foh.production.cost.list</field>
+        <field name="model">az.foh.production.cost</field>
         <field name="arch" type="xml">
-            <list string="FOH Item Cost Price" js_class="foh_item_cost_price_list" create="false" edit="false">
+            <list string="FOH Production Cost" js_class="foh_production_cost_list" create="false" edit="false">
                 <field name="trans_date"/>
                 <field name="location_id"/>
                 <field name="company_id"/>
-                <field name="default_code"/>
-                <field name="product_name"/>
-                <field name="product_id_foh"/>
-                <field name="uom_id"/>
-                <field name="currency_id"/>
-                <field name="amount" digits="[16,2]"/>
+                <field name="mrp_production_id"/>
+                <field name="product_raf_default_code"/>
+                <field name="product_raf_name"/>
+                <field name="product_foh_default_code"/>
+                <field name="product_name_foh"/>
+                <field name="product_foh_qty" digits="[16,4]"/>
+                <field name="cost_price_foh" digits="[16,2]"/>
             </list>
         </field>
     </record>
 
     <!-- ============================================================
-         FOH Item Cost Price - Form View
+         FOH Production Cost - Form View
     ============================================================ -->
-    <record id="view_az_foh_item_cost_price_form" model="ir.ui.view">
-        <field name="name">az.foh.item.cost.price.form</field>
-        <field name="model">az.foh.item.cost.price</field>
+    <record id="view_az_foh_production_cost_form" model="ir.ui.view">
+        <field name="name">az.foh.production.cost.form</field>
+        <field name="model">az.foh.production.cost</field>
         <field name="arch" type="xml">
-            <form string="FOH Item Cost Price">
+            <form string="FOH Production Cost">
                 <sheet>
                     <group>
                         <group string="Reference">
                             <field name="trans_date"/>
                             <field name="location_id"/>
+                            <field name="company_id"/>
+                            <field name="mrp_production_id"/>
                         </group>
-                        <group string="Product">
-                            <field name="product_id"/>
-                            <field name="product_name"/>
-                            <field name="product_id_foh"/>
+                        <group string="RAF Product">
+                            <field name="product_raf_id"/>
+                            <field name="product_raf_default_code"/>
+                            <field name="product_raf_name"/>
                         </group>
                     </group>
                     <group>
+                        <group string="FOH Item">
+                            <field name="product_id_foh"/>
+                            <field name="product_foh_default_code"/>
+                            <field name="product_name_foh"/>
+                            <field name="product_foh_qty" digits="[16,4]"/>
+                            <field name="cost_price_foh" digits="[16,2]"/>
+                        </group>
                         <group string="Cost">
-                            <field name="uom_id"/>
-                            <field name="currency_id"/>
-                            <field name="amount" digits="[16,2]"/>
+                            <field name="cost_price_foh" digits="[16,2]"/>
                         </group>
                     </group>
                 </sheet>
@@ -55,15 +63,15 @@
     </record>
 
     <!-- ============================================================
-         FOH Item Cost Price - Search View
+         FOH Production Cost - Search View
     ============================================================ -->
-    <record id="view_az_foh_item_cost_price_search" model="ir.ui.view">
-        <field name="name">az.foh.item.cost.price.search</field>
-        <field name="model">az.foh.item.cost.price</field>
+    <record id="view_az_foh_production_cost_search" model="ir.ui.view">
+        <field name="name">az.foh.production.cost.search</field>
+        <field name="model">az.foh.production.cost</field>
         <field name="arch" type="xml">
-            <search string="FOH Item Cost Price">
-                <field name="product_id"/>
-                <field name="product_name"/>
+            <search string="FOH Production Cost">
+                <field name="mrp_production_id"/>
+                <field name="product_raf_id"/>
                 <field name="product_id_foh"/>
                 <field name="location_id"/>
                 <field name="trans_date"/>
@@ -75,8 +83,9 @@
                         domain="[('trans_date','&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
                                  ('trans_date','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
-                    <filter string="FOH Item" name="group_foh_item" context="{'group_by': 'product_id_foh'}"/>
+                    <filter string="Production" name="group_production" context="{'group_by': 'mrp_production_id'}"/>
+                    <filter string="RAF Product" name="group_raf" context="{'group_by': 'product_raf_id'}"/>
+                    <filter string="FOH Item" name="group_foh" context="{'group_by': 'product_id_foh'}"/>
                     <filter string="Location" name="group_location" context="{'group_by': 'location_id'}"/>
                     <filter string="Trans Date" name="group_date" context="{'group_by': 'trans_date:month'}"/>
                 </group>
@@ -85,13 +94,13 @@
     </record>
 
     <!-- ============================================================
-         FOH Item Cost Price - Wizard Form View
+         Generate MRP Wizard - Form View
     ============================================================ -->
-    <record id="view_az_foh_item_cost_price_wizard_form" model="ir.ui.view">
-        <field name="name">az.foh.item.cost.price.wizard.form</field>
-        <field name="model">az.foh.item.cost.price.wizard</field>
+    <record id="view_az_foh_generate_mrp_wizard_form" model="ir.ui.view">
+        <field name="name">az.foh.generate.mrp.wizard.form</field>
+        <field name="model">az.foh.generate.mrp.wizard</field>
         <field name="arch" type="xml">
-            <form string="FOH Item Cost Price">
+            <form string="Generate FOH Production Cost">
                 <group>
                     <group string="Period">
                         <field name="from_date"/>
@@ -103,9 +112,9 @@
                     </group>
                 </group>
                 <footer>
-                    <button name="calc_foh_item_cost_price"
+                    <button name="generate_foh_production_cost"
                             type="object"
-                            string="Calculate"
+                            string="Generate"
                             class="btn-primary"/>
                     <button string="Close"
                             class="btn-secondary"
@@ -116,40 +125,40 @@
     </record>
 
     <!-- ============================================================
-         FOH Item Cost Price - Wizard Action
+         Generate MRP Wizard - Action
     ============================================================ -->
-    <record id="action_az_foh_item_cost_price_wizard" model="ir.actions.act_window">
-        <field name="name">FOH Item Cost Price</field>
-        <field name="res_model">az.foh.item.cost.price.wizard</field>
+    <record id="action_az_foh_generate_mrp_wizard" model="ir.actions.act_window">
+        <field name="name">Generate FOH Production Cost</field>
+        <field name="res_model">az.foh.generate.mrp.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="view_id" ref="view_az_foh_item_cost_price_wizard_form"/>
+        <field name="view_id" ref="view_az_foh_generate_mrp_wizard_form"/>
     </record>
 
     <!-- ============================================================
-         FOH Item Cost Price - Main Action
+         FOH Production Cost - Main Action
     ============================================================ -->
-    <record id="action_az_foh_item_cost_price" model="ir.actions.act_window">
-        <field name="name">FOH Item Cost Price</field>
-        <field name="res_model">az.foh.item.cost.price</field>
+    <record id="action_az_foh_production_cost" model="ir.actions.act_window">
+        <field name="name">FOH Production Cost</field>
+        <field name="res_model">az.foh.production.cost</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_my_company': 1}</field>
-        <field name="search_view_id" ref="view_az_foh_item_cost_price_search"/>
+        <field name="search_view_id" ref="view_az_foh_production_cost_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                No FOH Item Cost Price records yet.
+                No FOH Production Cost records yet.
             </p>
-            <p>Run the FOH Item Cost Price wizard to generate records.</p>
+            <p>Click "Generate FOH Production Cost" to populate data.</p>
         </field>
     </record>
 
     <!-- ============================================================
-         Menu: Accounting > Configuration > User Defined > FOH > FOH Item Cost Price
+         Menu: FOH Production Cost
     ============================================================ -->
-    <menuitem id="menu_az_foh_item_cost_price"
-              name="FOH Item Cost Price"
+    <menuitem id="menu_az_foh_production_cost"
+              name="FOH Production Cost"
               parent="swa_acc.menu_accounting_config_foh"
-              action="action_az_foh_item_cost_price"
-              sequence="50"/>
+              action="action_az_foh_production_cost"
+              sequence="60"/>
 
 </odoo>

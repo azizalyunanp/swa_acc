@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================================================================
+         QWEB TEMPLATE: PDF Layout
+    ================================================================ -->
+    <template id="az_foh_overview_report">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <t t-foreach="docs" t-as="data">
+                        <t t-call="swa_acc.az_foh_overview_content"/>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ================================================================
+         CONTENT TEMPLATE
+    ================================================================ -->
+    <template id="az_foh_overview_content">
+        <t t-set="currency" t-value="data['currency']"/>
+
+        <div style="margin-top:0; padding-top:0; page-break-after:always;">
+
+            <!-- Header -->
+            <h4 style="font-weight:bold; margin-bottom:4px;">
+                <t t-out="data['name']"/> — FOH Production Cost Overview
+            </h4>
+            <table class="table table-sm table-borderless" style="max-width:600px; margin-bottom:12px;">
+                <tbody>
+                    <tr>
+                        <td style="width:180px;"><b>Product</b></td>
+                        <td>
+                            [<t t-out="data['product_code']"/>]
+                            <t t-out="data['product_name']"/>
+                        </td>
+                    </tr>
+                    <tr t-if="data.get('lot_producing')">
+                        <td><b>Lot</b></td>
+                        <td><t t-out="data['lot_producing']"/></td>
+                    </tr>
+                    <tr>
+                        <td><b>Qty Producing</b></td>
+                        <td>
+                            <t t-out="data['qty_producing']"
+                               t-options="{'widget':'float','precision':4}"/>
+                            <span class="text-muted ms-1">
+                                <t t-out="data['uom_name']"/>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Location</b></td>
+                        <td><t t-out="data['location']"/></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Raw Materials -->
+            <h6 style="font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:4px;">
+                Raw Materials
+            </h6>
+            <table class="table table-sm table-bordered" style="margin-bottom:16px; font-size:10px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Code</th>
+                        <th>Product</th>
+                        <th>Lot</th>
+                        <th class="text-end">Qty</th>
+                        <th>UoM</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="data['raw_lines']" t-as="line">
+                        <tr>
+                            <td><t t-out="line['product_code']"/></td>
+                            <td><t t-out="line['product_name']"/></td>
+                            <td><t t-out="line['lot_name']"/></td>
+                            <td class="text-end">
+                                <t t-out="line['qty']"
+                                   t-options="{'widget':'float','precision':4}"/>
+                            </td>
+                            <td><t t-out="line['uom_name']"/></td>
+                            <td class="text-end">
+                                <t t-out="line['unit_price']"
+                                   t-options="{'widget':'monetary','display_currency':currency}"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-out="line['total_price']"
+                                   t-options="{'widget':'monetary','display_currency':currency}"/>
+                            </td>
+                        </tr>
+                    </t>
+                    <!-- Raw subtotal -->
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="6" class="text-end">Total Raw Material Cost</td>
+                        <td class="text-end">
+                            <t t-out="data['total_raw_cost']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- FOH Cost -->
+            <h6 style="font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:4px;">
+                FOH (Factory Overhead) Cost
+            </h6>
+            <table class="table table-sm table-bordered" style="margin-bottom:16px; font-size:10px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Code</th>
+                        <th>FOH Item</th>
+                        <th class="text-end">Qty Produced</th>
+                        <th class="text-end">Cost Price FOH</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="data['foh_lines']" t-as="foh">
+                        <tr>
+                            <td><t t-out="foh['product_code']"/></td>
+                            <td><t t-out="foh['product_name']"/></td>
+                            <td class="text-end">
+                                <t t-out="foh['qty']"
+                                   t-options="{'widget':'float','precision':4}"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-out="foh['cost_price']"
+                                   t-options="{'widget':'monetary','display_currency':currency}"/>
+                            </td>
+                        </tr>
+                    </t>
+                    <!-- FOH subtotal -->
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="3" class="text-end">Total FOH Cost</td>
+                        <td class="text-end">
+                            <t t-out="data['total_foh_cost']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Summary -->
+            <h6 style="font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:4px;">
+                Summary
+            </h6>
+            <table class="table table-sm table-borderless" style="max-width:500px;">
+                <tbody>
+                    <tr>
+                        <td style="width:240px;">Total Raw Material Cost</td>
+                        <td class="text-end">
+                            <t t-out="data['total_raw_cost']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Total FOH Cost</td>
+                        <td class="text-end">
+                            <t t-out="data['total_foh_cost']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                    <tr class="border-top fw-bold">
+                        <td>Total Cost of Production</td>
+                        <td class="text-end">
+                            <t t-out="data['total_cost']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Cost per Unit
+                            <small class="text-muted ms-1">
+                                (Total ÷ <t t-out="data['qty_producing']"
+                                    t-options="{'widget':'float','precision':4}"/>
+                                <t t-out="data['uom_name']"/>)
+                            </small>
+                        </td>
+                        <td class="text-end fw-bold text-primary">
+                            <t t-out="data['cost_per_unit']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                    <tr class="border-top">
+                        <td class="text-muted">
+                            Current Standard Price
+                            <t t-if="data.get('lot_producing')">
+                                (Lot: <t t-out="data['lot_producing']"/>)
+                            </t>
+                        </td>
+                        <td class="text-end text-muted">
+                            <t t-out="data['current_price']"
+                               t-options="{'widget':'monetary','display_currency':currency}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </template>
+
+    <!-- ================================================================
+         REPORT ACTION
+    ================================================================ -->
+    <record id="action_az_foh_overview_report" model="ir.actions.report">
+        <field name="name">FOH Production Cost Overview</field>
+        <field name="model">mrp.production</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">swa_acc.az_foh_overview_report</field>
+        <field name="report_file">swa_acc.az_foh_overview_report</field>
+        <field name="binding_model_id" ref="mrp.model_mrp_production"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

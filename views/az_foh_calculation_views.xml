@@ -8,7 +8,7 @@
         <field name="name">az.foh.calculation.list</field>
         <field name="model">az.foh.calculation</field>
         <field name="arch" type="xml">
-            <list string="FOH Calculation" js_class="foh_calculation_list">
+            <list string="FOH Calculation" js_class="foh_calculation_list" create="false" edit="false">
                 <field name="trans_date"/>
                 <field name="location_id"/>
                 <field name="company_id"/>

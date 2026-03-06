@@ -5,7 +5,29 @@ class MrpProduction(models.Model):
     _inherit = 'mrp.production'
 
     az_account_move_ids = fields.Many2many('account.move', string="Accounting Entries", copy=False)
-    
+    foh_production_cost_ids = fields.One2many(
+        comodel_name='az.foh.production.cost',
+        inverse_name='mrp_production_id',
+        string='FOH Production Cost',
+        copy=False,
+    )
+
+    def action_view_foh_production_cost(self):
+        self.ensure_one()
+        return {
+            'name': _('FOH Production Cost'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'az.foh.production.cost',
+            'view_mode': 'list,form',
+            'domain': [('mrp_production_id', '=', self.id)],
+            'context': {'create': False},
+        }
+
+    def print_az_foh_overview(self):
+        """Print FOH Production Cost Overview report."""
+        self.ensure_one()
+        return self.env.ref('swa_acc.action_az_foh_overview_report').report_action(self)
+
     def button_mark_done(self):
         res = super(MrpProduction, self).button_mark_done()
         is_automated = self.env['ir.config_parameter'].sudo().get_param('swa_acc.az_calculate_raf_pick_account_automate') == 'True'
