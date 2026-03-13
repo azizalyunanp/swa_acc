@@ -157,8 +157,8 @@
     ============================================================ -->
     <menuitem id="menu_az_foh_production_cost"
               name="FOH Production Cost"
-              parent="swa_acc.menu_accounting_config_foh"
+              parent="swa_acc.menu_user_defined_foh"
               action="action_az_foh_production_cost"
-              sequence="60"/>
+              sequence="30"/>
 
 </odoo>

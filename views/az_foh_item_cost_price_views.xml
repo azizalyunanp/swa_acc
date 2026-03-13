@@ -148,8 +148,8 @@
     ============================================================ -->
     <menuitem id="menu_az_foh_item_cost_price"
               name="FOH Item Cost Price"
-              parent="swa_acc.menu_accounting_config_foh"
+              parent="swa_acc.menu_user_defined_foh"
               action="action_az_foh_item_cost_price"
-              sequence="50"/>
+              sequence="20"/>
 
 </odoo>

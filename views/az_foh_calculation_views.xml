@@ -155,10 +155,16 @@
          Menu: Accounting > Configuration > User Defined > FOH > FOH Calculation
          (parent menu_accounting_config_foh defined in az_mapping_account_foh_views.xml)
     ============================================================ -->
+
+    <menuitem id="menu_user_defined_foh"
+                  name="FOH Entries"
+                  parent="swa_acc.menu_user_defined"
+                  sequence="600"/>
+
     <menuitem id="menu_az_foh_calculation"
               name="FOH Calculation"
-              parent="swa_acc.menu_accounting_config_foh"
+              parent="swa_acc.menu_user_defined_foh"
               action="action_az_foh_calculation"
-              sequence="40"/>
+              sequence="10"/>
 
 </odoo>
