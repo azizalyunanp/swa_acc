@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from collections import defaultdict
+import calendar
 
 
 FOH_TYPES = [
@@ -241,12 +242,29 @@ class AzFohCalculationWizard(models.TransientModel):
         # Ini lebih efisien daripada .create() satu per satu dalam loop
         # karena mengurangi jumlah query ke database.
         vals_list = []
+        # Compute trans_date = last day of from_date's month
+        from datetime import date as dt_date
+        last_day = calendar.monthrange(self.from_date.year, self.from_date.month)[1]
+        trans_date = dt_date(self.from_date.year, self.from_date.month, last_day)
+
         for pid, data in product_data.items():
             prod_equ_weight = data['prod_equ_weight']
 
+            # Duplicate validation per product
+            product_name = self.env['product.product'].browse(pid).display_name
+            if self.env['az.foh.calculation'].search([
+                ('product_id', '=', pid),
+                ('trans_date', '=', trans_date),
+                ('location_id', '=', self.location_id.id),
+            ], limit=1):
+                raise ValidationError(
+                    _("FOH Calculation already exists for product '%s' on %s.\n"
+                      "Please delete existing data first.") % (product_name, trans_date)
+                )
+
             # Siapkan dictionary nilai untuk satu record az.foh.calculation
             vals = {
-                'trans_date': self.from_date,
+                'trans_date': trans_date,
                 'location_id': self.location_id.id,
                 'company_id': self.company_id.id,
                 'product_id': pid,
@@ -329,7 +347,7 @@ class AzFohCalculationWizard(models.TransientModel):
                 _logger.info("Deleting %s...", table)
                 self._cr.execute(f"DELETE FROM {table}")  # noqa: S608
 
-            # Legacy table - skip gracefully if it doesn't exist
+            # Legacy table — skip gracefully if already dropped
             self._cr.execute("""
                 DO $$
                 BEGIN

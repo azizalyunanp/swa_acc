@@ -3,10 +3,12 @@
 import { ListController } from "@web/views/list/list_controller";
 import { registry } from "@web/core/registry";
 import { listView } from "@web/views/list/list_view";
+import { useService } from "@web/core/utils/hooks";
 
 export class FohProductionCostListController extends ListController {
     setup() {
         super.setup();
+        this.notification = useService("notification");
     }
 
     async onClickGenerateFohProductionCost() {
@@ -23,6 +25,7 @@ export class FohProductionCostListController extends ListController {
         await this.model.load();
         this.render(true);
     }
+
 }
 
 FohProductionCostListController.template = "swa_acc.FohProductionCostListView.Buttons";

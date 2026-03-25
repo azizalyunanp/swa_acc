@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ============================================================
+         FOH Cost Price FG - Tree View
+    ============================================================ -->
+    <record id="view_az_foh_cost_price_fg_tree" model="ir.ui.view">
+        <field name="name">az.foh.cost.price.fg.tree</field>
+        <field name="model">az.foh.cost.price.fg</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'canceled'" js_class="foh_cost_price_fg_list" create="false" edit="false" >
+                <field name="trans_date"/>
+                <field name="default_code"/>
+                <field name="product_name"/>
+                <field name="lot_id"/>
+                <field name="location_name"/>
+                <field name="uom_id"/>
+                <field name="cost_price_before_foh" digits="[16,2]"/>
+                <field name="cost_price_after_foh" digits="[16,2]"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Cost Price FG - Form View
+    ============================================================ -->
+    <record id="view_az_foh_cost_price_fg_form" model="ir.ui.view">
+        <field name="name">az.foh.cost.price.fg.form</field>
+        <field name="model">az.foh.cost.price.fg</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="General">
+                            <field name="trans_date"/>
+                            <field name="product_id"/>
+                            <field name="default_code"/>
+                            <field name="product_name"/>
+                            <field name="lot_id"/>
+                        </group>
+                        <group string="Location &amp; UOM">
+                            <field name="location_id"/>
+                            <field name="location_name"/>
+                            <field name="uom_id"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group string="Cost Information">
+                        <group>
+                            <field name="cost_price_before_foh" digits="[16,2]"/>
+                            <field name="cost_price_after_foh" digits="[16,2]"/>
+                        </group>
+                        <group>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Cost Price FG - Search View
+    ============================================================ -->
+    <record id="view_az_foh_cost_price_fg_search" model="ir.ui.view">
+        <field name="name">az.foh.cost.price.fg.search</field>
+        <field name="model">az.foh.cost.price.fg</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="default_code"/>
+                <field name="location_id"/>
+                <field name="trans_date"/>
+                <filter string="Done" name="done" domain="[('status', '=', 'done')]"/>
+                <filter string="Canceled" name="canceled" domain="[('status', '=', 'canceled')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="group_by_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Location" name="group_by_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Trans Date" name="group_by_date" context="{'group_by': 'trans_date'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Cost Price FG - Action
+    ============================================================ -->
+    <record id="action_az_foh_cost_price_fg" model="ir.actions.act_window">
+        <field name="name">FOH Product Average Cost Price</field>
+        <field name="res_model">az.foh.cost.price.fg</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_az_foh_cost_price_fg_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No FOH Product Average Cost Price records yet.
+            </p>
+            <p>Run "Calculate Average Product" from FOH Production Cost to populate data.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu: FOH Product Average Cost Price
+    ============================================================ -->
+    <menuitem id="menu_az_foh_cost_price_fg"
+              name="FOH Product Average Cost Price"
+              parent="swa_acc.menu_user_defined_foh"
+              action="action_az_foh_cost_price_fg"
+              sequence="40"/>
+
+</odoo>

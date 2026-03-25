@@ -92,6 +92,7 @@ class AzFohGenerateMrpWizard(models.TransientModel):
                     'location_id':       self.location_id.id,
                     'company_id':        self.company_id.id,
                     'mrp_production_id': mrp.id,
+                    'lot_id':            mrp.lot_producing_id.id if mrp.lot_producing_id else False,
                     'product_id_foh':    foh_cost.product_id_foh.id,
                     'product_foh_qty':   mrp.qty_producing,
                     'product_raf_id':    mrp.product_id.id,

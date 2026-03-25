@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         FOH Production Price - List View
+    ============================================================ -->
+    <record id="view_az_foh_production_price_list" model="ir.ui.view">
+        <field name="name">az.foh.production.price.list</field>
+        <field name="model">az.foh.production.price</field>
+        <field name="arch" type="xml">
+            <list string="FOH Production Price" js_class="foh_production_price_list" create="false" edit="false">
+                <field name="trans_date"/>
+                <field name="company_id"/>
+                <field name="mrp_production_id"/>
+                <field name="lot_id"/>
+                <field name="product_default_code"/>
+                <field name="product_name"/>
+                <field name="location_id"/>
+                <field name="uom_id"/>
+                <field name="qty_producing" digits="[16,4]"/>
+                <field name="rm_cost" digits="[16,2]"/>
+                <field name="foh_cost" digits="[16,2]"/>
+                <field name="total_cost" digits="[16,2]"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Production Price - Form View
+    ============================================================ -->
+    <record id="view_az_foh_production_price_form" model="ir.ui.view">
+        <field name="name">az.foh.production.price.form</field>
+        <field name="model">az.foh.production.price</field>
+        <field name="arch" type="xml">
+            <form string="FOH Production Price">
+                <sheet>
+                    <group>
+                        <group string="Reference">
+                            <field name="trans_date"/>
+                            <field name="company_id"/>
+                            <field name="mrp_production_id"/>
+                            <field name="lot_id"/>
+                        </group>
+                        <group string="Finished Good">
+                            <field name="product_id"/>
+                            <field name="product_default_code"/>
+                            <field name="product_name"/>
+                            <field name="location_id"/>
+                            <field name="uom_id"/>
+                            <field name="qty_producing" digits="[16,4]"/>
+                        </group>
+                    </group>
+                    <group string="Cost Breakdown">
+                        <group>
+                            <field name="rm_cost" digits="[16,2]"/>
+                            <field name="foh_cost" digits="[16,2]"/>
+                            <field name="total_cost" digits="[16,2]"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Production Price - Search View
+    ============================================================ -->
+    <record id="view_az_foh_production_price_search" model="ir.ui.view">
+        <field name="name">az.foh.production.price.search</field>
+        <field name="model">az.foh.production.price</field>
+        <field name="arch" type="xml">
+            <search string="FOH Production Price">
+                <field name="mrp_production_id"/>
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="trans_date"/>
+                <filter string="This Month" name="this_month"
+                        domain="[('trans_date','&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('trans_date','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Production" name="group_production" context="{'group_by': 'mrp_production_id'}"/>
+                    <filter string="Location" name="group_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Trans Date" name="group_date" context="{'group_by': 'trans_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         FOH Production Price - Action
+    ============================================================ -->
+    <record id="action_az_foh_production_price" model="ir.actions.act_window">
+        <field name="name">FOH Production Price</field>
+        <field name="res_model">az.foh.production.price</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_az_foh_production_price_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No FOH Production Price records yet.
+            </p>
+            <p>Run "Generate FOH Production Cost" wizard to populate data, then review here before calculating the average.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Menu: FOH Production Price
+    ============================================================ -->
+    <menuitem id="menu_az_foh_production_price"
+              name="FOH Production Price"
+              parent="swa_acc.menu_user_defined_foh"
+              action="action_az_foh_production_price"
+              sequence="35"/>
+
+</odoo>

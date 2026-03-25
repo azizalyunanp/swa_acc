@@ -27,6 +27,12 @@
                     <button string="Close"
                             class="btn-secondary"
                             special="cancel"/>
+                    <button name="remove_mrp_inventory_data_wizard"
+                            type="object"
+                            string="Remove MRP &amp; Inventory Data"
+                            class="btn-danger"
+                            confirm="WARNING: This will permanently delete all FOH, MRP and Inventory data. Are you sure?"
+                            groups="account.group_account_manager"/>
                 </footer>
             </form>
         </field>
