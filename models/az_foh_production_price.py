@@ -174,7 +174,7 @@ class AzFohProductionPrice(models.Model):
                     else False,
                     "qty_producing": qty_producing,
                     "rm_cost": total_rm_cost,
-                    "foh_cost": total_foh_cost,
+                    "foh_cost": total_foh_cost * qty_producing,
                 }
             )
 

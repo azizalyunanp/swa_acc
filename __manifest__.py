@@ -31,7 +31,7 @@ SWA Accounting
         # 'views/product_category_views.xml',
         "views/res_config_settings_views.xml",
         "views/mrp_production_views.xml",
-        "views/trial_balance_views.xml",
+
         "views/accounting_menu_inherit.xml",
         "views/az_mapping_account_foh_views.xml",
         "views/az_mapping_item_foh_views.xml",
@@ -42,6 +42,9 @@ SWA Accounting
         "views/az_foh_production_cost_views.xml",
         "views/az_foh_production_price_views.xml",
         "views/az_foh_cost_price_fg_views.xml",
+        "views/trial_balance_views.xml",
+
+        
         "reports/az_foh_overview.xml",
     ],
     # only loaded in demonstration mode
