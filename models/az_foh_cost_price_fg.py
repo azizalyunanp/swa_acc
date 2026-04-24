@@ -107,7 +107,6 @@ class AzFohCostPriceFg(models.Model):
         return True
 
     def _update_standard_price(self):
-        """Update standard_price for the specific lot (if set) or product."""
         self.ensure_one()
 
         product = self.product_id
@@ -116,26 +115,104 @@ class AzFohCostPriceFg(models.Model):
         if not product or not new_price:
             return False
 
-        # If lot_id is explicitly set on this record, update that lot directly
-        if self.lot_id and hasattr(self.lot_id, "standard_price"):
-            self.lot_id.sudo().write({"standard_price": new_price})
-        elif product.tracking == "lot":
-            lots = self.env["stock.lot"].search(
-                [
-                    ("product_id", "=", product.id),
-                    ("company_id", "=", self.company_id.id),
-                ],
-                limit=1,
-            )
-            if lots and hasattr(lots[0], "standard_price"):
-                lots[0].sudo().write({"standard_price": new_price})
-            else:
-                product.sudo().write({"standard_price": new_price})
+        if product.cost_method != 'average':
+            # Non-AVCO: tulis biasa cukup
+            product.sudo().with_context(disable_auto_svl=True).write({"standard_price": new_price})
+            return True
+
+        if product.tracking == 'lot' and self.lot_id:
+            # Update standard_price di lot level (untuk referensi)
+            if hasattr(self.lot_id, 'standard_price'):
+                self.lot_id.sudo().with_context(disable_auto_svl=True).write({"standard_price": new_price})
+
+            # Hitung nilai stok khusus lot ini
+            quants = self.env['stock.quant'].search([
+                ('product_id', '=', product.id),
+                ('lot_id', '=', self.lot_id.id),
+                ('location_id.usage', '=', 'internal'),
+            ])
+            qty_on_hand = sum(quants.mapped('quantity'))
+
+            if qty_on_hand > 0:
+                old_price = product.standard_price
+                price_diff = new_price - old_price
+                revaluation_value = round(price_diff * qty_on_hand, 2)
+
+                if revaluation_value != 0:
+                    self._create_revaluation_entry(
+                        product, self.lot_id, revaluation_value
+                    )
+
+            # Update standard_price product juga agar AVCO konsisten
+            product.sudo().with_context(disable_auto_svl=True).write({"standard_price": new_price})
+
         else:
-            product.sudo().write({"standard_price": new_price})
+            # Tidak ada lot tracking → pakai method bawaan Odoo
+            product.sudo()._change_standard_price(new_price)
 
         return True
 
+
+    def _create_revaluation_entry(self, product, lot, revaluation_value):
+        category = product.categ_id
+        stock_valuation_account = category.property_stock_valuation_account_id
+        
+        # ✅ Field name yang benar di Odoo CE 18
+        price_diff_account = category.property_account_creditor_price_difference_categ
+
+        if not stock_valuation_account:
+            raise UserError(
+                "Stock Valuation Account belum di-set di Product Category: %s" 
+                % category.name
+            )
+        if not price_diff_account:
+            raise UserError(
+                "Price Difference Account belum di-set di Product Category: %s." 
+                % category.name
+            )
+
+        if revaluation_value > 0:
+            debit_account  = stock_valuation_account
+            credit_account = price_diff_account
+        else:
+            debit_account  = price_diff_account
+            credit_account = stock_valuation_account
+
+        # Create Stock Valuation Layer to match the accounting entry
+        svl_vals = {
+            'company_id': self.env.company.id,
+            'product_id': product.id,
+            'description': 'Revaluation: %s - Lot: %s' % (product.name, lot.name),
+            'value': revaluation_value,
+            'quantity': 0,
+            'lot_id': lot.id if lot else False,
+        }
+        svl = self.env['stock.valuation.layer'].sudo().create(svl_vals)
+
+        move_vals = {
+            'ref': 'Revaluation: %s - Lot: %s' % (product.name, lot.name),
+            'journal_id': category.property_stock_journal.id,
+            'stock_valuation_layer_ids': [(6, 0, [svl.id])],
+            'line_ids': [
+                (0, 0, {
+                    'name': 'Stock Revaluation %s [%s]' % (product.name, lot.name),
+                    'account_id': debit_account.id,
+                    'debit': abs(revaluation_value),
+                    'credit': 0.0,
+                }),
+                (0, 0, {
+                    'name': 'Stock Revaluation %s [%s]' % (product.name, lot.name),
+                    'account_id': credit_account.id,
+                    'debit': 0.0,
+                    'credit': abs(revaluation_value),
+                }),
+            ],
+        }
+
+        move = self.env['account.move'].sudo().create(move_vals)
+        move.sudo().action_post()
+        return move
+    
     # ─────────────────────────────────────────────────────────────────────────
     # Calculate Average Product (NEW: reads from az_foh_production_price)
     # ─────────────────────────────────────────────────────────────────────────

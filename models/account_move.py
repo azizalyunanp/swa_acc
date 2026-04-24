@@ -8,18 +8,21 @@ class AccountMoveLine(models.Model):
     def write(self, vals):
         res = super(AccountMoveLine, self).write(vals)
         if 'partner_id' in vals:
-            for line in self:
-                if line.move_id and line.move_id.partner_id.id != vals['partner_id']:
-                    line.move_id.partner_id = vals['partner_id']
+            moves_to_update = self.mapped('move_id').filtered(
+                lambda m: m.partner_id.id != vals['partner_id']
+            )
+            if moves_to_update:
+                moves_to_update.write({'partner_id': vals['partner_id']})
         return res
 
-    @api.model
-    def create(self, vals):
-        res = super(AccountMoveLine, self).create(vals)
-        if 'partner_id' in vals and res.move_id:
-            if res.move_id.partner_id.id != vals['partner_id']:
-                res.move_id.partner_id = vals['partner_id']
-        return res
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super(AccountMoveLine, self).create(vals_list)
+        for line, vals in zip(lines, vals_list):
+            if 'partner_id' in vals and line.move_id:
+                if line.move_id.partner_id.id != vals['partner_id']:
+                    line.move_id.partner_id = vals['partner_id']
+        return lines
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
