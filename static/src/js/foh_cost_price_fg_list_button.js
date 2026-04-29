@@ -55,6 +55,46 @@ export class FohCostPriceFgListController extends ListController {
             cancel: () => {},
         });
     }
+
+    async onClickCreateSalesDiffJournal() {
+        const selectedRecords = this.model.root.selection;
+        if (selectedRecords.length === 0) {
+            this.notification.add(
+                _t("Please select at least one record."),
+                { type: "warning" }
+            );
+            return;
+        }
+
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Create FOH Sales Difference Journal"),
+            body: _t(
+                `This will create journal entries to adjust COGS for the FOH cost difference on sold goods for ${selectedRecords.length} selected record(s). Continue?`
+            ),
+            confirm: async () => {
+                const recordIds = selectedRecords.map(record => record.resId);
+                try {
+                    await this.orm.call(
+                        "az.foh.cost.price.fg",
+                        "create_sales_diff_journal_batch",
+                        [recordIds]
+                    );
+                    this.notification.add(
+                        _t("FOH Sales Difference journal entries created successfully."),
+                        { type: "success" }
+                    );
+                    await this.model.load();
+                    this.render(true);
+                } catch (error) {
+                    this.notification.add(
+                        _t("Error: ") + (error.data?.message || error.message || ""),
+                        { type: "danger" }
+                    );
+                }
+            },
+            cancel: () => {},
+        });
+    }
 }
 
 FohCostPriceFgListController.template = "swa_acc.FohCostPriceFgListView.Buttons";

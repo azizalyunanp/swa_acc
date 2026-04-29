@@ -17,6 +17,7 @@
                 <field name="cost_price_before_foh" digits="[16,2]"/>
                 <field name="cost_price_after_foh" digits="[16,2]"/>
                 <field name="status"/>
+                <field name="foh_sales_diff_move_id" optional="show"/>
             </list>
         </field>
     </record>
@@ -52,6 +53,7 @@
                         </group>
                         <group>
                             <field name="status"/>
+                            <field name="foh_sales_diff_move_id" readonly="1"/>
                         </group>
                     </group>
                 </sheet>

@@ -79,6 +79,13 @@ class AzFohCostPriceFg(models.Model):
         string="Lot/Serial",
         ondelete="restrict",
     )
+    foh_sales_diff_move_id = fields.Many2one(
+        comodel_name="account.move",
+        string="Sales Diff Journal Entry",
+        readonly=True,
+        ondelete="set null",
+        help="Journal entry created to adjust COGS for the FOH cost difference on sold goods.",
+    )
 
     _sql_constraints = [
         (
@@ -390,3 +397,194 @@ class AzFohCostPriceFg(models.Model):
                 self.create(vals)
 
         return True
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # FOH Sales Difference Journal
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @api.model
+    def create_sales_diff_journal_batch(self, record_ids):
+        """
+        Batch method dipanggil dari JavaScript pada list view az.foh.cost.price.fg.
+        Membuat journal entry penyesuaian COGS untuk selisih cost price FOH
+        pada transaksi penjualan dalam bulan trans_date masing-masing record.
+        """
+        if not record_ids:
+            return False
+        records = self.browse(record_ids)
+        for record in records:
+            record._create_sales_diff_journal()
+        return True
+
+    def _create_sales_diff_journal(self):
+        """
+        Buat 1 account.move dengan 4 line untuk penyesuaian COGS akibat FOH:
+
+          Line 1: Dr. Stock Output Account     diff_amount
+          Line 2:     Cr. Stock Valuation Acct diff_amount
+          Line 3: Dr. COGS / Expense Account   diff_amount
+          Line 4:     Cr. Stock Output Account diff_amount
+
+        Net effect: Dr. COGS / Cr. Stock Valuation
+        Stock Output muncul dua kali (transit) → net = 0, tapi alur terlihat di buku besar.
+
+        from_date / to_date dihitung otomatis dari trans_date:
+          from_date = hari pertama bulan trans_date
+          to_date   = hari terakhir bulan trans_date
+        """
+        self.ensure_one()
+
+        product = self.product_id
+        lot     = self.lot_id
+
+        # ── STEP 1: Hitung price_diff ────────────────────────────────
+        price_diff = self.cost_price_after_foh - self.cost_price_before_foh
+        if price_diff == 0:
+            raise UserError(
+                _("Cost price before and after FOH are equal for %s — no journal needed.")
+                % product.display_name
+            )
+
+        # ── STEP 2: Hitung from_date / to_date dari trans_date ───────
+        import calendar
+        trans_date = self.trans_date
+        from_date  = trans_date.replace(day=1)
+        last_day   = calendar.monthrange(trans_date.year, trans_date.month)[1]
+        to_date    = trans_date.replace(day=last_day)
+
+        # ── STEP 3: Cari total qty terjual untuk product + lot ini ───
+        # Filter:
+        #   - state = done
+        #   - arah ke customer (sales delivery)
+        #   - dalam rentang bulan trans_date
+        #   - date < self.create_date → HANYA transaksi SEBELUM record FOH ini dibuat.
+        #     Transaksi sesudahnya sudah menggunakan harga FOH yang benar → di-skip.
+        move_line_domain = [
+            ('state',                   '=',  'done'),
+            ('product_id',              '=',  product.id),
+            ('location_dest_id.usage',  '=',  'customer'),
+            ('date',                    '>=', from_date),
+            ('date',                    '<=', to_date),
+            ('date',                    '<',  self.create_date),   # ← skip transaksi post-FOH
+        ]
+        if lot:
+            move_line_domain.append(('lot_id', '=', lot.id))
+
+        sold_lines     = self.env['stock.move.line'].search(move_line_domain)
+        total_qty_sold = sum(sold_lines.mapped('quantity'))
+
+        if total_qty_sold <= 0:
+            # Tidak ada sales di periode ini → skip record ini, lanjut ke record berikutnya
+            return
+
+
+        # ── STEP 4: Hitung total selisih nilai ───────────────────────
+        diff_amount = round(price_diff * total_qty_sold, 2)
+        if diff_amount == 0:
+            # Selisih nol → skip, tidak perlu jurnal
+            return
+
+
+        # ── STEP 5: Ambil akun dari Product Category ─────────────────
+        category = product.categ_id
+
+        stock_valuation_acct = category.property_stock_valuation_account_id
+        stock_output_acct    = category.property_stock_account_output_categ_id
+        expense_account      = category.property_account_expense_categ_id
+        journal              = category.property_stock_journal
+
+        if not stock_valuation_acct:
+            raise UserError(
+                _("Stock Valuation Account belum di-set di Product Category: %s")
+                % category.name
+            )
+        if not stock_output_acct:
+            raise UserError(
+                _("Stock Output Account belum di-set di Product Category: %s")
+                % category.name
+            )
+        if not expense_account:
+            raise UserError(
+                _("Expense / COGS Account belum di-set di Product Category: %s")
+                % category.name
+            )
+        if not journal:
+            raise UserError(
+                _("Stock Journal belum di-set di Product Category: %s")
+                % category.name
+            )
+
+        # ── STEP 6: Tentukan arah debit/kredit sesuai tanda diff ─────
+        # price_diff > 0 → FOH menaikkan cost → COGS perlu ditambah
+        # price_diff < 0 → FOH menurunkan cost → COGS perlu dikurangi (reverse)
+        abs_amount = abs(diff_amount)
+
+        if diff_amount > 0:
+            # Normal: persediaan lebih mahal → COGS naik
+            line1_debit, line1_credit = abs_amount, 0.0   # Dr. Stock Output
+            line2_debit, line2_credit = 0.0, abs_amount   # Cr. Stock Valuation
+            line3_debit, line3_credit = abs_amount, 0.0   # Dr. COGS
+            line4_debit, line4_credit = 0.0, abs_amount   # Cr. Stock Output
+        else:
+            # Reverse: persediaan lebih murah → COGS turun
+            line1_debit, line1_credit = 0.0, abs_amount   # Cr. Stock Output
+            line2_debit, line2_credit = abs_amount, 0.0   # Dr. Stock Valuation
+            line3_debit, line3_credit = 0.0, abs_amount   # Cr. COGS
+            line4_debit, line4_credit = abs_amount, 0.0   # Dr. Stock Output
+
+        ref_label = 'FOH Sales Diff: %s%s' % (
+            product.display_name,
+            (' [%s]' % lot.name) if lot else '',
+        )
+        line_name = 'FOH Diff %s%s | %s – %s' % (
+            product.display_name,
+            (' [%s]' % lot.name) if lot else '',
+            from_date,
+            to_date,
+        )
+
+        # ── STEP 7: Buat 1 account.move dengan 4 line ────────────────
+        move_vals = {
+            'ref':        ref_label,
+            'journal_id': journal.id,
+            'date':       to_date,
+            'company_id': self.company_id.id,
+            'line_ids': [
+                # Line 1 — Stock Output (debit)
+                (0, 0, {
+                    'name':       line_name,
+                    'account_id': stock_output_acct.id,
+                    'debit':      line1_debit,
+                    'credit':     line1_credit,
+                }),
+                # Line 2 — Stock Valuation (credit)
+                (0, 0, {
+                    'name':       line_name,
+                    'account_id': stock_valuation_acct.id,
+                    'debit':      line2_debit,
+                    'credit':     line2_credit,
+                }),
+                # Line 3 — COGS / Expense (debit)
+                (0, 0, {
+                    'name':       line_name,
+                    'account_id': expense_account.id,
+                    'debit':      line3_debit,
+                    'credit':     line3_credit,
+                }),
+                # Line 4 — Stock Output (credit) → netting line 1
+                (0, 0, {
+                    'name':       line_name,
+                    'account_id': stock_output_acct.id,
+                    'debit':      line4_debit,
+                    'credit':     line4_credit,
+                }),
+            ],
+        }
+
+        move = self.env['account.move'].sudo().create(move_vals)
+        move.sudo().action_post()
+
+        # Simpan relasi ke record FOH untuk audit trail
+        self.sudo().write({'foh_sales_diff_move_id': move.id})
+
+        return move

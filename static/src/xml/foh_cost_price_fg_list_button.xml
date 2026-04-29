@@ -8,6 +8,12 @@
                     t-on-click="onClickUpdateStandardPrice">
                 Update Standard Price
             </button>
+            <button type="button"
+                    class="btn btn-primary"
+                    style="margin-right: 10px;"
+                    t-on-click="onClickCreateSalesDiffJournal">
+                Create Sales Diff Journal
+            </button>
         </xpath>
     </t>
 </templates>
