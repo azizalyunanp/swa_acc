@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 from collections import defaultdict
-import calendar
 
 
 FOH_TYPES = [
@@ -83,6 +82,34 @@ class AzFohCalculationWizard(models.TransientModel):
         # di UI (tidak crash), dan _() digunakan untuk mendukung terjemahan (i18n).
         if self.from_date > self.to_date:
             raise UserError(_("From Date cannot be greater than To Date."))
+
+        # ─────────────────────────────────────────────────────────────
+        # VALIDASI DUPLIKASI: Tolak proses jika data sudah ada
+        # ─────────────────────────────────────────────────────────────
+        # Cek apakah sudah ada record az.foh.calculation untuk kombinasi
+        # periode (from_date – to_date), location_id, dan company_id yang sama.
+        # Jika ada → user harus hapus dulu secara manual agar tidak
+        # terjadi overwrite data yang tidak disengaja.
+        existing_calc = self.env['az.foh.calculation'].search([
+            ('trans_date',  '>=', self.from_date),
+            ('trans_date',  '<=', self.to_date),
+            ('location_id', '=',  self.location_id.id),
+            ('company_id',  '=',  self.company_id.id),
+        ], limit=1)
+
+        if existing_calc:
+            raise UserError(_(
+                "FOH Calculation data already exists for:\n"
+                "  • Period   : %s  →  %s\n"
+                "  • Location : %s\n"
+                "  • Company  : %s\n\n"
+                "Please delete the existing data first before recalculating."
+            ) % (
+                self.from_date,
+                self.to_date,
+                self.location_id.display_name,
+                self.company_id.name,
+            ))
 
         # ─────────────────────────────────────────────────────────────
         # STEP 1: Ambil data Production Order yang sudah selesai
@@ -242,29 +269,12 @@ class AzFohCalculationWizard(models.TransientModel):
         # Ini lebih efisien daripada .create() satu per satu dalam loop
         # karena mengurangi jumlah query ke database.
         vals_list = []
-        # Compute trans_date = last day of from_date's month
-        from datetime import date as dt_date
-        last_day = calendar.monthrange(self.from_date.year, self.from_date.month)[1]
-        trans_date = dt_date(self.from_date.year, self.from_date.month, last_day)
-
         for pid, data in product_data.items():
             prod_equ_weight = data['prod_equ_weight']
 
-            # Duplicate validation per product
-            product_name = self.env['product.product'].browse(pid).display_name
-            if self.env['az.foh.calculation'].search([
-                ('product_id', '=', pid),
-                ('trans_date', '=', trans_date),
-                ('location_id', '=', self.location_id.id),
-            ], limit=1):
-                raise ValidationError(
-                    _("FOH Calculation already exists for product '%s' on %s.\n"
-                      "Please delete existing data first.") % (product_name, trans_date)
-                )
-
             # Siapkan dictionary nilai untuk satu record az.foh.calculation
             vals = {
-                'trans_date': trans_date,
+                'trans_date': self.from_date,
                 'location_id': self.location_id.id,
                 'company_id': self.company_id.id,
                 'product_id': pid,
@@ -325,7 +335,61 @@ class AzFohCalculationWizard(models.TransientModel):
             'target': 'current',
         }
 
+    def calc_foh_all(self):
+        """
+        Jalankan ketiga proses FOH sekaligus secara berurutan dengan
+        parameter yang sama (from_date, to_date, location_id, company_id):
+
+          1. calc_foh()                  → hitung az.foh.calculation
+          2. calc_foh_item_cost_price()  → hitung az.foh.item.cost.price
+          3. generate_foh_production_cost() → generate az.foh.production.cost
+        """
+        self.ensure_one()
+
+        if self.from_date > self.to_date:
+            raise UserError(_("From Date cannot be greater than To Date."))
+
+        # ── STEP 1: FOH Calculation ──────────────────────────────────
+        # Panggil langsung logika calc_foh() tanpa return-nya (kita
+        # tidak ingin redirect di tengah proses).
+        self.calc_foh()
+
+        # ── STEP 2: FOH Item Cost Price ──────────────────────────────
+        # Buat wizard sementara (TransientModel) dengan parameter yang sama,
+        # lalu panggil method-nya.  with_context() memastikan environment
+        # yang sama (company, user, lang) diwariskan.
+        item_wizard = self.env['az.foh.item.cost.price.wizard'].with_context(
+            self.env.context
+        ).create({
+            'from_date':   self.from_date,
+            'to_date':     self.to_date,
+            'location_id': self.location_id.id,
+            'company_id':  self.company_id.id,
+        })
+        item_wizard.calc_foh_item_cost_price()
+
+        # ── STEP 3: Generate FOH Production Cost ────────────────────
+        mrp_wizard = self.env['az.foh.generate.mrp.wizard'].with_context(
+            self.env.context
+        ).create({
+            'from_date':   self.from_date,
+            'to_date':     self.to_date,
+            'location_id': self.location_id.id,
+            'company_id':  self.company_id.id,
+        })
+        mrp_wizard.generate_foh_production_cost()
+
+        # ── Redirect ke hasil akhir (FOH Production Cost) ───────────
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('FOH Production Cost'),
+            'res_model': 'az.foh.production.cost',
+            'view_mode': 'list,form',
+            'target': 'current',
+        }
+
     def remove_mrp_inventory_data_wizard(self):
+
         """
         Remove all FOH, MRP, and Inventory transactional data.
         Exposed as a danger button on the FOH Calculation wizard.
@@ -347,7 +411,7 @@ class AzFohCalculationWizard(models.TransientModel):
                 _logger.info("Deleting %s...", table)
                 self._cr.execute(f"DELETE FROM {table}")  # noqa: S608
 
-            # Legacy table — skip gracefully if already dropped
+            # Legacy table - skip gracefully if it doesn't exist
             self._cr.execute("""
                 DO $$
                 BEGIN

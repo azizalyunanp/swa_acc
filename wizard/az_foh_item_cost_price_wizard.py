@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError, ValidationError
-import calendar
+from odoo.exceptions import UserError
 
 
 # Map az.mapping.item.foh.type → field on az.foh.calculation
@@ -95,11 +94,6 @@ class AzFohItemCostPriceWizard(models.TransientModel):
         vals_list = []
         for calc in foh_calcs:
             qty_raf = calc.qty_raf
-            # trans_date = last day of calc.trans_date's month
-            from datetime import date as dt_date
-            last_day = calendar.monthrange(calc.trans_date.year, calc.trans_date.month)[1]
-            item_trans_date = dt_date(calc.trans_date.year, calc.trans_date.month, last_day)
-
             for mapping in foh_item_mappings:
                 # Get the correct amount field based on mapping type
                 amount_field = FOH_TYPE_AMOUNT_MAP.get(mapping.type, None)
@@ -109,22 +103,9 @@ class AzFohItemCostPriceWizard(models.TransientModel):
                 raw_amount = getattr(calc, amount_field, 0.0)
                 amount = raw_amount / qty_raf if qty_raf else 0.0
 
-                # Duplicate check
-                if self.env['az.foh.item.cost.price'].search([
-                    ('product_id', '=', calc.product_id.id),
-                    ('product_id_foh', '=', mapping.product_id.id),
-                    ('trans_date', '=', item_trans_date),
-                    ('location_id', '=', self.location_id.id),
-                ], limit=1):
-                    raise ValidationError(
-                        _("FOH Item Cost Price already exists for product '%s' / FOH item '%s' on %s.\n"
-                          "Please delete the existing data first.")
-                        % (calc.product_id.display_name, mapping.product_id.display_name, item_trans_date)
-                    )
-
                 vals_list.append({
                     'product_id':     calc.product_id.id,
-                    'trans_date':     item_trans_date,
+                    'trans_date':     calc.trans_date,
                     'location_id':    self.location_id.id,
                     'company_id':     self.company_id.id,
                     'product_id_foh': mapping.product_id.id,

@@ -16,8 +16,15 @@ class ProductCategory(models.Model):
         help="Account used for Raw Material picking journal entries."
     )
     az_property_wip_account_id = fields.Many2one(
-        'account.account', 
+        'account.account',
         string="WIP Account",
         company_dependent=True,
         help="Work in Progress (WIP) Account."
+    )
+    az_foh_account_id = fields.Many2one(
+        'account.account',
+        string="FOH Revaluation Account",
+        company_dependent=True,
+        help="Account used as the counter-part (credit/debit offset) "
+             "when creating FOH revaluation journal entries."
     )

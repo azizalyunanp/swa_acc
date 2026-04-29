@@ -156,18 +156,20 @@ class AzFohCostPriceFg(models.Model):
     def _create_revaluation_entry(self, product, lot, revaluation_value):
         category = product.categ_id
         stock_valuation_account = category.property_stock_valuation_account_id
-        
-        # ✅ Field name yang benar di Odoo CE 18
-        price_diff_account = category.property_account_creditor_price_difference_categ
+
+        # Akun offset/counter-part untuk FOH revaluation.
+        # Di-set manual per Product Category via field az_foh_account_id.
+        price_diff_account = category.az_foh_account_id
 
         if not stock_valuation_account:
             raise UserError(
-                "Stock Valuation Account belum di-set di Product Category: %s" 
+                "Stock Valuation Account belum di-set di Product Category: %s"
                 % category.name
             )
         if not price_diff_account:
             raise UserError(
-                "Price Difference Account belum di-set di Product Category: %s." 
+                "FOH Revaluation Account (az_foh_account_id) belum di-set "
+                "di Product Category: %s."
                 % category.name
             )
 

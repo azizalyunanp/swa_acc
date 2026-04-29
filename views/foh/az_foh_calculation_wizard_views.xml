@@ -20,10 +20,15 @@
                     </group>
                 </group>
                 <footer>
+                    <button name="calc_foh_all"
+                            type="object"
+                            string="Calculate All"
+                            class="btn-primary"
+                            confirm="Proses ini akan menjalankan FOH Calculation → FOH Item Cost Price → Generate MRP Production Cost secara berurutan. Lanjutkan?"/>
                     <button name="calc_foh"
                             type="object"
-                            string="Calculate FOH"
-                            class="btn-primary"/>
+                            string="Calculate FOH Only"
+                            class="btn-secondary"/>
                     <button string="Close"
                             class="btn-secondary"
                             special="cancel"/>

@@ -28,20 +28,23 @@ SWA Accounting
         "views/views.xml",
         "views/templates.xml",
         "views/giro_input_views.xml",
-        # 'views/product_category_views.xml',
+        'views/product_category_views.xml',
         "views/res_config_settings_views.xml",
         "views/mrp_production_views.xml",
 
         "views/accounting_menu_inherit.xml",
-        "views/az_mapping_account_foh_views.xml",
-        "views/az_mapping_item_foh_views.xml",
-        "views/az_item_foh_ratio_views.xml",
-        "views/az_foh_calculation_wizard_views.xml",
-        "views/az_foh_calculation_views.xml",
-        "views/az_foh_item_cost_price_views.xml",
-        "views/az_foh_production_cost_views.xml",
-        "views/az_foh_production_price_views.xml",
-        "views/az_foh_cost_price_fg_views.xml",
+
+        "views/foh/setup/az_mapping_account_foh_views.xml",
+        "views/foh/setup/az_mapping_item_foh_views.xml",
+        "views/foh/setup/az_item_foh_ratio_views.xml",
+
+
+        "views/foh/az_foh_calculation_wizard_views.xml",
+        "views/foh/az_foh_calculation_views.xml",
+        "views/foh/az_foh_item_cost_price_views.xml",
+        "views/foh/az_foh_production_cost_views.xml",
+        "views/foh/az_foh_production_price_views.xml",
+        "views/foh/az_foh_cost_price_fg_views.xml",
         "views/trial_balance_views.xml",
 
         
