@@ -66,8 +66,16 @@ class AzGiroInput(models.Model):
     
     giro_account_id = fields.Many2one(
         'account.account',
-        string='Giro Account',
+        string='Giro Account (Debit)',
         required=True,
+        domain=[('account_type', 'not in', ['asset_receivable', 'liability_payable'])],
+        tracking=True,
+        states={'confirmed': [('readonly', True)], 'cancelled': [('readonly', True)]}
+    )
+    
+    giro_account_credit_id = fields.Many2one(
+        'account.account',
+        string='Giro Account (Credit)',
         domain=[('account_type', 'not in', ['asset_receivable', 'liability_payable'])],
         tracking=True,
         states={'confirmed': [('readonly', True)], 'cancelled': [('readonly', True)]}
@@ -443,14 +451,17 @@ class AzGiroInput(models.Model):
         self.ensure_one()
         
         # Get partner's payable or receivable account
-        if self.partner_type == 'vendor':
-            partner_account = self.partner_id.property_account_payable_id
-            if not partner_account:
-                raise ValidationError(_('Partner %s does not have a payable account configured.') % self.partner_id.name)
-        else:  # customer
-            partner_account = self.partner_id.property_account_receivable_id
-            if not partner_account:
-                raise ValidationError(_('Partner %s does not have a receivable account configured.') % self.partner_id.name)
+        if self.giro_account_credit_id:
+            partner_account = self.giro_account_credit_id
+        else:
+            if self.partner_type == 'vendor':
+                partner_account = self.partner_id.property_account_payable_id
+                if not partner_account:
+                    raise ValidationError(_('Partner %s does not have a payable account configured.') % self.partner_id.name)
+            else:  # customer
+                partner_account = self.partner_id.property_account_receivable_id
+                if not partner_account:
+                    raise ValidationError(_('Partner %s does not have a receivable account configured.') % self.partner_id.name)
         
         # Get default journal (first one available)
         journal = self.env['account.journal'].search([

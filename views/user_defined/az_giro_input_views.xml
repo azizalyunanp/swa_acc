@@ -14,11 +14,12 @@
                     <field name="cheque_reference"/>
                     <field name="amount" sum="Total Amount"/>
                     <field name="giro_account_id"/>
+                    <field name="giro_account_credit_id" optional="hide"/>
                     <field name="is_cleared" widget="boolean" optional="show"/>
                     <field name="is_reversed" widget="boolean" optional="show"/>
                     <field name="is_clearing_reversed" widget="boolean" optional="show"/>
                     <field name="state" widget="badge" decoration-info="state=='draft'" decoration-success="state in ['confirmed', 'cleared']" decoration-warning="state in ['reversed', 'clearing_reversed']" decoration-danger="state=='cancelled'"/>
-                    <field name="company_id" groups="base.group_multi_company"/>
+                    <!-- <field name="company_id" groups="base.group_multi_company"/> -->
                 </list>
             </field>
         </record>
@@ -158,6 +159,9 @@
                                 <field name="giro_account_id" 
                                        options="{'no_create': True, 'no_create_edit': True}"
                                        readonly="state != 'draft'"/>
+                                <field name="giro_account_credit_id" 
+                                       options="{'no_create': True, 'no_create_edit': True}"
+                                       readonly="state != 'draft'"/>
                                 <field name="journal_bank_id" 
                                        options="{'no_create': True, 'no_create_edit': True}"
                                        readonly="state != 'draft'"/>
@@ -176,9 +180,9 @@
                                 <field name="reverse_clearing_move_id" readonly="1" 
                                        invisible="not reverse_clearing_move_id"
                                        options="{'no_create': True}"/>
-                                <field name="company_id" groups="base.group_multi_company" 
+                                <!-- <field name="company_id" groups="base.group_multi_company" 
                                        options="{'no_create': True}"
-                                       readonly="state != 'draft'"/>
+                                       readonly="state != 'draft'"/> -->
                             </group>
                         </group>
                         <group>
