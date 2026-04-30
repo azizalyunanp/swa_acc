@@ -42,10 +42,20 @@
                 -->
                 <list string="Trial Balance" create="false" edit="false" delete="false">
                     <field name="account_id"/>
+                    
+                    <field name="opening_balance" sum="Total Opening"/>
+                    <button name="action_view_opening_balance" type="object" icon="fa-list" class="btn btn-sm btn-link" title="View Opening Balance Transactions"/>
+                    
                     <field name="debit" sum="Total Debit"/>
+                    <button name="action_view_debit" type="object" icon="fa-list" class="btn btn-sm btn-link" title="View Debit Transactions"/>
+                    
                     <field name="credit" sum="Total Credit"/>
-                    <field name="balance" sum="Total Balance"/>
-                    <button name="action_view_history" string="View History" type="object" 
+                    <button name="action_view_credit" type="object" icon="fa-list" class="btn btn-sm btn-link" title="View Credit Transactions"/>
+                    
+                    <field name="closing_balance" sum="Total Closing"/>
+                    <button name="action_view_closing_balance" type="object" icon="fa-list" class="btn btn-sm btn-link" title="View Closing Balance Transactions"/>
+                    
+                    <button name="action_view_history" string="View All" type="object" 
                             icon="fa-history" class="btn btn-link"/>
                 </list>
             </field>

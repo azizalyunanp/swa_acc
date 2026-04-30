@@ -52,13 +52,11 @@ class TrialBalanceWizard(models.TransientModel):
         self.env['swa.trial.balance.line'].search([('create_uid', '=', self.env.uid)]).unlink()
         
         domain = [
-            ('company_id', '=', self.company_id.id)
+            ('company_id', 'child_of', self.company_id.id)
         ]
         
 
         
-        if self.date_from:
-            domain.append(('date', '>=', self.date_from))
         if self.date_to:
             domain.append(('date', '<=', self.date_to))
         
@@ -73,29 +71,37 @@ class TrialBalanceWizard(models.TransientModel):
             if acc_id not in account_data:
                 account_data[acc_id] = {
                     'account_id': line.account_id.id,
-                    'code': line.account_id.code,
-                    'name': line.account_id.name,
+                    'opening_balance': 0.0,
                     'debit': 0.0,
                     'credit': 0.0,
                 }
-            account_data[acc_id]['debit'] += line.debit
-            account_data[acc_id]['credit'] += line.credit
+            
+            if self.date_from and line.date < self.date_from:
+                account_data[acc_id]['opening_balance'] += line.debit - line.credit
+            else:
+                account_data[acc_id]['debit'] += line.debit
+                account_data[acc_id]['credit'] += line.credit
         
         lines_to_create = []
         for acc_id, data in account_data.items():
-            balance = data['debit'] - data['credit']
+            opening_balance = data['opening_balance']
+            debit = data['debit']
+            credit = data['credit']
+            closing_balance = opening_balance + debit - credit
             
-            if self.show_accounts == 'movement' and data['debit'] == 0 and data['credit'] == 0:
+            if self.show_accounts == 'movement' and debit == 0 and credit == 0:
                 continue
-            if self.show_accounts == 'not_zero' and balance == 0:
+            if self.show_accounts == 'not_zero' and closing_balance == 0:
                 continue
             
             lines_to_create.append({
                 'wizard_id': self.id,
                 'account_id': data['account_id'],
-                'debit': data['debit'],
-                'credit': data['credit'],
-                'balance': balance,
+                'opening_balance': opening_balance,
+                'debit': debit,
+                'credit': credit,
+                'closing_balance': closing_balance,
+                'balance': closing_balance,
                 'date_from': self.date_from,
                 'date_to': self.date_to,
                 'company_id': self.company_id.id,
@@ -133,6 +139,10 @@ class TrialBalanceLine(models.TransientModel):
         'account.account',
         string='Account'
     )
+    opening_balance = fields.Monetary(
+        string='Opening Balance',
+        currency_field='currency_id'
+    )
     debit = fields.Monetary(
         string='Debit',
         currency_field='currency_id'
@@ -143,6 +153,10 @@ class TrialBalanceLine(models.TransientModel):
     )
     balance = fields.Monetary(
         string='Balance',
+        currency_field='currency_id'
+    )
+    closing_balance = fields.Monetary(
+        string='Closing Balance',
         currency_field='currency_id'
     )
     currency_id = fields.Many2one(
@@ -165,21 +179,22 @@ class TrialBalanceLine(models.TransientModel):
         ('all', 'All Entries')
     ], string='Target Moves')
 
-    def action_view_history(self):
-        self.ensure_one()
-        
+    def _get_base_domain(self):
         domain = [
             ('account_id', '=', self.account_id.id),
-            ('company_id', '=', self.company_id.id)
+            ('company_id', 'child_of', self.company_id.id)
         ]
-        
+        if self.target_move == 'posted':
+            domain.append(('parent_state', '=', 'posted'))
+        return domain
+
+    def action_view_history(self):
+        self.ensure_one()
+        domain = self._get_base_domain()
         if self.date_from:
             domain.append(('date', '>=', self.date_from))
         if self.date_to:
             domain.append(('date', '<=', self.date_to))
-        
-        if self.target_move == 'posted':
-            domain.append(('parent_state', '=', 'posted'))
         
         return {
             'name': _('Account Move Lines - %s') % self.account_id.display_name,
@@ -190,5 +205,88 @@ class TrialBalanceLine(models.TransientModel):
             'target': 'current',
             'context': {
                 'search_default_groupby_date': 1,
+                'order': 'date asc'
+            }
+        }
+
+    def action_view_opening_balance(self):
+        self.ensure_one()
+        domain = self._get_base_domain()
+        if self.date_from:
+            domain.append(('date', '<', self.date_from))
+        
+        return {
+            'name': _('Opening Balance - %s') % self.account_id.display_name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move.line',
+            'view_mode': 'list,form',
+            'domain': domain,
+            'target': 'current',
+            'context': {
+                'search_default_groupby_date': 1,
+                'order': 'date asc'
+            }
+        }
+
+    def action_view_debit(self):
+        self.ensure_one()
+        domain = self._get_base_domain()
+        if self.date_from:
+            domain.append(('date', '>=', self.date_from))
+        if self.date_to:
+            domain.append(('date', '<=', self.date_to))
+        domain.append(('debit', '>', 0))
+        
+        return {
+            'name': _('Debit Transactions - %s') % self.account_id.display_name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move.line',
+            'view_mode': 'list,form',
+            'domain': domain,
+            'target': 'current',
+            'context': {
+                'search_default_groupby_date': 1,
+                'order': 'date asc'
+            }
+        }
+
+    def action_view_credit(self):
+        self.ensure_one()
+        domain = self._get_base_domain()
+        if self.date_from:
+            domain.append(('date', '>=', self.date_from))
+        if self.date_to:
+            domain.append(('date', '<=', self.date_to))
+        domain.append(('credit', '>', 0))
+        
+        return {
+            'name': _('Credit Transactions - %s') % self.account_id.display_name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move.line',
+            'view_mode': 'list,form',
+            'domain': domain,
+            'target': 'current',
+            'context': {
+                'search_default_groupby_date': 1,
+                'order': 'date asc'
+            }
+        }
+
+    def action_view_closing_balance(self):
+        self.ensure_one()
+        domain = self._get_base_domain()
+        if self.date_to:
+            domain.append(('date', '<=', self.date_to))
+        
+        return {
+            'name': _('Closing Balance - %s') % self.account_id.display_name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move.line',
+            'view_mode': 'list,form',
+            'domain': domain,
+            'target': 'current',
+            'context': {
+                'search_default_groupby_date': 1,
+                'order': 'date asc'
             }
         }
