@@ -79,21 +79,6 @@
         </field>
     </record>
 
-    <!-- ============================================================
-         Menu: Accounting > Configuration > User Defined > FOH > FOH Mapping Account
-    ============================================================ -->
-
-    <!-- Sub-menu: Configuration > User Defined (under Accounting > Configuration) -->
-    <menuitem id="menu_accounting_config_user_defined"
-              name="User Defined"
-              parent="account.menu_finance_configuration"
-              sequence="50"/>
-
-    <!-- Sub-menu: User Defined > FOH -->
-    <menuitem id="menu_accounting_config_foh"
-              name="FOH"
-              parent="menu_accounting_config_user_defined"
-              sequence="10"/>
 
     <!-- Sub-menu: FOH > FOH Mapping Account -->
     <menuitem id="menu_az_mapping_account_foh"

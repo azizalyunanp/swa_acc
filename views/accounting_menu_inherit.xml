@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Menambahkan Menu 'User Defined' di dalam menu Reporting (account.menu_finance_reports) -->
-    <!-- Parent diambil dari module 'account' yaitu 'account.menu_finance_reports' yang juga digunakan oleh base_accounting_kit -->
+    <menuitem id="menu_accounting_config_user_defined"
+          name="User Defined"
+          parent="account.menu_finance_configuration"
+          sequence="50"/>
+
+    <!-- Sub-menu: User Defined > FOH -->
+    <!-- CONFIG FOH -->
+    <menuitem id="menu_accounting_config_foh"
+        name="FOH"
+        parent="menu_accounting_config_user_defined"
+        sequence="10"/>
+
+    <!-- ENTRY FOH -->
+    <menuitem id="menu_user_defined"
+        name="User Defined"
+        parent="account.menu_finance_entries"
+        sequence="500"/>
+
     
-    <menuitem id="menu_user_defined_reports"
-              name="User Defined"
-              parent="account.menu_finance_reports"
-              sequence="50"/>
+    <menuitem id="menu_user_defined_foh"
+        name="FOH Entries"
+        parent="kiewel.menu_user_defined"
+        sequence="600"/>
 
 </odoo>

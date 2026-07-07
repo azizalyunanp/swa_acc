@@ -48,6 +48,7 @@ SWA Accounting
         "views/foh/az_foh_production_cost_views.xml",
         "views/foh/az_foh_production_price_views.xml",
         "views/foh/az_foh_cost_price_fg_views.xml",
+
         "views/trial_balance_views.xml",
 
         ### END ###
