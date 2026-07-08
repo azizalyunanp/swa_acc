@@ -1,22 +1,52 @@
 # -*- coding: utf-8 -*-
-# from odoo import http
+from odoo import http
+from odoo.http import request
+import json
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
-# class SwaAcc(http.Controller):
-#     @http.route('/swa_acc/swa_acc', auth='public')
-#     def index(self, **kw):
-#         return "Hello, world"
+class SynchDataController(http.Controller):
 
-#     @http.route('/swa_acc/swa_acc/objects', auth='public')
-#     def list(self, **kw):
-#         return http.request.render('swa_acc.listing', {
-#             'root': '/swa_acc/swa_acc',
-#             'objects': http.request.env['swa_acc.swa_acc'].search([]),
-#         })
+    @http.route('/synchronize_data', type='http', auth="none", methods=['POST'], csrf=False)
+    def synch_data(self, **kwargs):
+        try:
+            _logger.info("Endpoint /synchronize_data dipanggil")
 
-#     @http.route('/swa_acc/swa_acc/objects/<model("swa_acc.swa_acc"):obj>', auth='public')
-#     def object(self, obj, **kw):
-#         return http.request.render('swa_acc.object', {
-#             'object': obj
-#         })
+            data = request.jsonrequest
+            _logger.info(f"Data diterima: {data}")
 
+            if not data:
+                raise ValueError("Data tidak boleh kosong")
+
+            SwaApiReceivedData = request.env['swa.api.received.data']
+            new_data = SwaApiReceivedData.sudo().create({
+                'type_trans': data.get('type_trans'),
+                'session': data.get('session'),
+                'data_trans': json.dumps(data.get('data_trans')),
+                'is_executed': 'No'
+            })
+
+            _logger.info(f"Data berhasil disimpan dengan ID: {new_data.id}")
+
+            response = {
+                'success': '1',
+                'error': '0',
+                'message': 'Data berhasil disimpan',
+                'record_id': new_data.id
+            }
+
+        except Exception as e:
+            _logger.error(f"Error pada /synchronize_data: {str(e)}")
+            response = {
+                'success': '0',
+                'error': str(e),
+                'message': 'Terjadi kesalahan saat menyimpan data'
+            }
+
+        return request.make_json_response(response)
+
+    @http.route('/synchronize_data/test', type='http', auth="public", methods=['GET'])
+    def test_endpoint(self, **kwargs):
+        return "Endpoint synchronize_data berfungsi dengan baik!"
