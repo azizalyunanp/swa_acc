@@ -1,27 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <menuitem id="menu_accounting_config_user_defined"
-          name="User Defined"
-          parent="account.menu_finance_configuration"
-          sequence="50"/>
+    <menuitem
+        id="menu_accounting_config_user_defined"
+        name="User Defined"
+        parent="account.menu_finance_configuration"
+        sequence="50"
+    />
 
     <!-- Sub-menu: User Defined > FOH -->
     <!-- CONFIG FOH -->
-    <menuitem id="menu_accounting_config_foh"
+    <menuitem
+        id="menu_accounting_config_foh"
         name="FOH"
         parent="menu_accounting_config_user_defined"
-        sequence="10"/>
+        sequence="10"
+    />
 
-    <!-- ENTRY FOH -->
-    <menuitem id="menu_user_defined"
+    <!-- USER DEFINED ACCOUNTING-->
+    <menuitem
+        id="menu_user_defined"
         name="User Defined"
         parent="account.menu_finance_entries"
-        sequence="500"/>
+        sequence="500"
+    />
 
-    
-    <menuitem id="menu_user_defined_foh"
+    <menuitem
+        id="menu_user_defined_foh"
         name="FOH Entries"
-        parent="kiewel.menu_user_defined"
-        sequence="600"/>
+        parent="swa_acc.menu_user_defined"
+        sequence="600"
+    />
+
+    <!-- USER DEFINED REPORTING -->
+    <menuitem
+        id="menu_user_defined_reports"
+        name="User Defined Reports"
+        parent="account.menu_finance_reports"
+        sequence="1000"
+    />
 
 </odoo>
