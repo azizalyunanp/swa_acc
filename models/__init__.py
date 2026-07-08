@@ -11,3 +11,5 @@ from . import mrp_wip_accounting
 # ── Factory Overhead (FOH) models ────────────────────────────────
 from . import foh
 from . import user_defined
+# ── API Data models ────────────────────────────────────────────────
+from . import api_received_data
