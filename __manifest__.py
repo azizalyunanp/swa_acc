@@ -20,6 +20,7 @@ SWA Accounting
         "mrp",
         "stock_account",
         "base_accounting_kit",
+        # "kiewel",
     ],
     # always loaded
     "data": [
@@ -37,6 +38,7 @@ SWA Accounting
 
         ### MY CUSTOM ###
         "views/user_defined/az_giro_input_views.xml",
+        "views/user_defined/az_api_received_data_views.xml",
     
         "views/foh/setup/az_mapping_account_foh_views.xml",
         "views/foh/setup/az_mapping_item_foh_views.xml",

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ============================================================
+             API Received Data - List View
+        ============================================================ -->
+        <record id="view_api_received_data_list" model="ir.ui.view">
+            <field name="name">swa.api.received.data.list</field>
+            <field name="model">swa.api.received.data</field>
+            <field name="arch" type="xml">
+                <list string="API Received Data" create="false" edit="false" delete="false">
+                    <field name="type_trans"/>
+                    <field name="session"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                    <field name="create_date" optional="show"/>
+                    <field name="data_trans" optional="show"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ============================================================
+             API Received Data - Form View
+        ============================================================ -->
+        <record id="view_api_received_data_form" model="ir.ui.view">
+            <field name="name">swa.api.received.data.form</field>
+            <field name="model">swa.api.received.data</field>
+            <field name="arch" type="xml">
+                <form string="API Received Data">
+                    <header>
+                        <field name="is_executed" widget="statusbar" statusbar_visible="No,Yes"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="type_trans"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="session"/>
+                                <field name="is_executed"/>
+                            </group>
+                            <group>
+                                <field name="create_date"/>
+                                <field name="write_date"/>
+                            </group>
+                        </group>
+                        <group string="Data Trans">
+                            <field name="data_trans" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <div class="o_attachment_preview"/>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- ============================================================
+             API Received Data - Search View
+        ============================================================ -->
+        <record id="view_api_received_data_search" model="ir.ui.view">
+            <field name="name">swa.api.received.data.search</field>
+            <field name="model">swa.api.received.data</field>
+            <field name="arch" type="xml">
+                <search string="API Received Data">
+                    <field name="type_trans"/>
+                    <field name="session"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                    <separator/>
+                    <filter string="Create Date" name="create_date" date="create_date"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Type" name="group_type" context="{'group_by': 'type_trans'}"/>
+                        <filter string="Status" name="group_status" context="{'group_by': 'is_executed'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ============================================================
+             API Received Data - Action
+        ============================================================ -->
+        <record id="action_api_received_data" model="ir.actions.act_window">
+            <field name="name">API Received Data</field>
+            <field name="res_model">swa.api.received.data</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_api_received_data_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No API data received yet
+                </p>
+                <p>
+                    Data received from external API calls via /synchronize_data endpoint will appear here.
+                </p>
+            </field>
+        </record>
+
+        <!-- ============================================================
+             Menus
+        ============================================================ -->
+        <!-- Top-level app menu "Synchronize" in the Odoo app bar -->
+        <menuitem id="swa_acc.menu_synchronize_root"
+                  name="Synchronize"
+                  sequence="100"
+                  web_icon="swa_acc,static/description/icon.png"/>
+
+        <!-- Sub-menu under Synchronize app -->
+        <menuitem id="menu_api_received_data"
+                  name="API Received Data"
+                  parent="swa_acc.menu_synchronize_root"
+                  action="action_api_received_data"
+                  sequence="10"/>
+    </data>
+</odoo>
