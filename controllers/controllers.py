@@ -20,11 +20,14 @@ class SynchDataController(http.Controller):
             if not data:
                 raise ValueError("Data tidak boleh kosong")
 
+            if not data.get('type_trans') or not data.get('session'):
+                raise ValueError("type_trans and session are required")
+
             SwaApiReceivedData = request.env['swa.api.received.data']
             new_data = SwaApiReceivedData.sudo().create({
                 'type_trans': data.get('type_trans'),
                 'session': data.get('session'),
-                'data_trans': json.dumps(data.get('data_trans')),
+                'data_trans': json.dumps(data.get('data_trans')) if isinstance(data.get('data_trans'), (dict, list)) else data.get('data_trans'),
                 'is_executed': 'No'
             })
 
@@ -44,6 +47,7 @@ class SynchDataController(http.Controller):
                 'error': str(e),
                 'message': 'Terjadi kesalahan saat menyimpan data'
             }
+            return request.make_json_response(response, status=500)
 
         return request.make_json_response(response)
 

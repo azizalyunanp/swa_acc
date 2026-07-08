@@ -14,4 +14,4 @@ class SwaApiReceivedData(models.Model):
     type_trans = fields.Char(string='Type Trans', required=True)
     session = fields.Char(string='Session', required=True)
 
-    _sql_constraints = ['unique_session_type', 'unique(session, type_trans)', 'Combination of session and type_trans must be unique']
+    _sql_constraints = [('unique_session_type', 'unique(session, type_trans)', 'Combination of session and type_trans must be unique')]
