@@ -39,7 +39,11 @@ SWA Accounting
         ### MY CUSTOM ###
         "views/user_defined/az_giro_input_views.xml",
         "views/user_defined/az_api_received_data_views.xml",
-    
+        "views/staging/item_staging_views.xml",
+        "views/staging/cust_vend_staging_views.xml",
+        "views/staging/cust_invoice_jour_staging_views.xml",
+        "views/staging/invent_trans_staging_views.xml",
+
         "views/foh/setup/az_mapping_account_foh_views.xml",
         "views/foh/setup/az_mapping_item_foh_views.xml",
         "views/foh/setup/az_item_foh_ratio_views.xml",

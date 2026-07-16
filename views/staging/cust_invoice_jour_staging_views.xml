@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_cust_invoice_jour_staging_list" model="ir.ui.view">
+            <field name="name">swa.cust.invoice.jour.staging.list</field>
+            <field name="model">swa.cust.invoice.jour.staging</field>
+            <field name="arch" type="xml">
+                <list string="Cust Invoice Jour Staging" create="false" edit="false" delete="false">
+                    <field name="invoice_id"/>
+                    <field name="invoice_account"/>
+                    <field name="invoice_date"/>
+                    <field name="currency"/>
+                    <field name="invoice_amount"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_cust_invoice_jour_staging_form" model="ir.ui.view">
+            <field name="name">swa.cust.invoice.jour.staging.form</field>
+            <field name="model">swa.cust.invoice.jour.staging</field>
+            <field name="arch" type="xml">
+                <form string="Cust Invoice Jour Staging">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="invoice_id"/>
+                                <field name="invoice_account"/>
+                                <field name="invoice_date"/>
+                                <field name="currency"/>
+                            </group>
+                            <group>
+                                <field name="invoice_amount"/>
+                                <field name="invoice_amount_mst"/>
+                                <field name="tax_amount"/>
+                                <field name="incl_tax"/>
+                                <field name="tax_group"/>
+                                <field name="is_executed"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Invoice Lines">
+                                <field name="line_ids" readonly="1">
+                                    <list>
+                                        <field name="invoice_id"/>
+                                        <field name="invoice_date"/>
+                                        <field name="purch_price"/>
+                                        <field name="line_amount"/>
+                                        <field name="tax_item_group"/>
+                                        <field name="is_executed"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_cust_invoice_jour_staging_search" model="ir.ui.view">
+            <field name="name">swa.cust.invoice.jour.staging.search</field>
+            <field name="model">swa.cust.invoice.jour.staging</field>
+            <field name="arch" type="xml">
+                <search string="Cust Invoice Jour Staging">
+                    <field name="invoice_id"/>
+                    <field name="invoice_account"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                    <separator/>
+                    <filter string="Invoice Date" name="invoice_date" date="invoice_date"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_cust_invoice_jour_staging" model="ir.actions.act_window">
+            <field name="name">Cust Invoice Jour Staging</field>
+            <field name="res_model">swa.cust.invoice.jour.staging</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_cust_invoice_jour_staging_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No Cust Invoice Jour staging data</p>
+                <p>Staging data for Customer Invoice Journals imported from AX 2012.</p>
+            </field>
+        </record>
+
+        <menuitem id="menu_cust_invoice_jour_staging"
+                  name="Cust Invoice Jour Staging"
+                  parent="swa_acc.menu_staging_data"
+                  action="action_cust_invoice_jour_staging"
+                  sequence="20"/>
+    </data>
+</odoo>

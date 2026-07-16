@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_invent_trans_staging_list" model="ir.ui.view">
+            <field name="name">swa.invent.trans.staging.list</field>
+            <field name="model">swa.invent.trans.staging</field>
+            <field name="arch" type="xml">
+                <list string="Invent Trans Staging" create="false" edit="false" delete="false">
+                    <field name="item_id"/>
+                    <field name="trans_no"/>
+                    <field name="transtype"/>
+                    <field name="trans_date"/>
+                    <field name="trans_qty"/>
+                    <field name="warehouse"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_invent_trans_staging_form" model="ir.ui.view">
+            <field name="name">swa.invent.trans.staging.form</field>
+            <field name="model">swa.invent.trans.staging</field>
+            <field name="arch" type="xml">
+                <form string="Invent Trans Staging">
+                    <sheet>
+                        <group string="Transaction Info">
+                            <group>
+                                <field name="orig_rec_id"/>
+                                <field name="item_id"/>
+                                <field name="inventserial"/>
+                                <field name="transtype"/>
+                                <field name="trans_no"/>
+                                <field name="invoice_id"/>
+                                <field name="trans_date"/>
+                                <field name="trans_unit"/>
+                                <field name="trans_qty"/>
+                                <field name="qty"/>
+                                <field name="netto"/>
+                            </group>
+                            <group>
+                                <field name="site"/>
+                                <field name="warehouse"/>
+                                <field name="warehouse_type"/>
+                                <field name="location"/>
+                                <field name="invent_batch_id"/>
+                                <field name="cust_vend_id"/>
+                                <field name="currency"/>
+                                <field name="cost_price"/>
+                                <field name="cost_amount"/>
+                                <field name="is_executed"/>
+                            </group>
+                        </group>
+                        <group string="Document Info">
+                            <group>
+                                <field name="doc_no"/>
+                                <field name="doc_date"/>
+                                <field name="no_faktur_pajak"/>
+                                <field name="packing_slip_id"/>
+                                <field name="peb"/>
+                            </group>
+                            <group>
+                                <field name="no_aju"/>
+                                <field name="bc_type"/>
+                                <field name="bc_no"/>
+                                <field name="bc_date"/>
+                                <field name="modified_by"/>
+                                <field name="modified_date_time"/>
+                                <field name="journal_inv_type"/>
+                                <field name="invent_ref_id"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_invent_trans_staging_search" model="ir.ui.view">
+            <field name="name">swa.invent.trans.staging.search</field>
+            <field name="model">swa.invent.trans.staging</field>
+            <field name="arch" type="xml">
+                <search string="Invent Trans Staging">
+                    <field name="item_id"/>
+                    <field name="trans_no"/>
+                    <field name="invoice_id"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                    <separator/>
+                    <filter string="Trans Date" name="trans_date" date="trans_date"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Trans Type" name="group_transtype" context="{'group_by': 'transtype'}"/>
+                        <filter string="Warehouse" name="group_warehouse" context="{'group_by': 'warehouse'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_invent_trans_staging" model="ir.actions.act_window">
+            <field name="name">Invent Trans Staging</field>
+            <field name="res_model">swa.invent.trans.staging</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_invent_trans_staging_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No Invent Trans staging data</p>
+                <p>Staging data for Inventory Transactions imported from AX 2012.</p>
+            </field>
+        </record>
+
+        <menuitem id="menu_invent_trans_staging"
+                  name="Invent Trans Staging"
+                  parent="swa_acc.menu_staging_data"
+                  action="action_invent_trans_staging"
+                  sequence="30"/>
+    </data>
+</odoo>

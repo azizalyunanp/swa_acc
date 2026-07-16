@@ -29,3 +29,14 @@ access_az_foh_cost_price_fg_manager,az.foh.cost.price.fg.manager,model_az_foh_co
 
 access_swa_api_received_data_user,swa.api.received.data.user,model_swa_api_received_data,account.group_account_user,1,0,0,0
 access_swa_api_received_data_manager,swa.api.received.data.manager,model_swa_api_received_data,account.group_account_manager,1,1,1,1
+
+access_swa_item_staging_user,swa.item.staging.user,model_swa_item_staging,account.group_account_user,1,0,0,0
+access_swa_item_staging_manager,swa.item.staging.manager,model_swa_item_staging,account.group_account_manager,1,1,1,1
+access_swa_cust_vend_staging_user,swa.cust.vend.staging.user,model_swa_cust_vend_staging,account.group_account_user,1,0,0,0
+access_swa_cust_vend_staging_manager,swa.cust.vend.staging.manager,model_swa_cust_vend_staging,account.group_account_manager,1,1,1,1
+access_swa_cust_invoice_jour_staging_user,swa.cust.invoice.jour.staging.user,model_swa_cust_invoice_jour_staging,account.group_account_user,1,0,0,0
+access_swa_cust_invoice_jour_staging_manager,swa.cust.invoice.jour.staging.manager,model_swa_cust_invoice_jour_staging,account.group_account_manager,1,1,1,1
+access_swa_cust_invoice_trans_staging_user,swa.cust.invoice.trans.staging.user,model_swa_cust_invoice_trans_staging,account.group_account_user,1,0,0,0
+access_swa_cust_invoice_trans_staging_manager,swa.cust.invoice.trans.staging.manager,model_swa_cust_invoice_trans_staging,account.group_account_manager,1,1,1,1
+access_swa_invent_trans_staging_user,swa.invent.trans.staging.user,model_swa_invent_trans_staging,account.group_account_user,1,0,0,0
+access_swa_invent_trans_staging_manager,swa.invent.trans.staging.manager,model_swa_invent_trans_staging,account.group_account_manager,1,1,1,1
