@@ -118,8 +118,10 @@ class StagingDataController(http.Controller):
     def _get_handler(self, type_trans):
         handlers = {
             'Item': self._process_item,
+            'InventTable': self._process_item,
             'CustVend': self._process_cust_vend,
             'InventTrans': self._process_invent_trans,
+            'ALL': self._process_invent_trans,
             'CustInvoiceJour': self._process_cust_invoice_jour,
             'CustInvoiceTrans': self._process_cust_invoice_trans,
         }
@@ -129,8 +131,19 @@ class StagingDataController(http.Controller):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', key)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+    def _filter_vals(self, model_name, vals):
+        valid_fields = set(request.env[model_name].sudo()._fields.keys())
+        return {k: v for k, v in vals.items() if k in valid_fields}
+
+    def _parse_date(self, value):
+        if isinstance(value, str) and '/' in value:
+            parts = value.split('/')
+            if len(parts) == 3:
+                return f"{parts[2]}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+        return value
+
     def _process_item(self, data):
-        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        vals = self._filter_vals('swa.item.staging', {self._to_snake_case(k): v for k, v in data.items()})
         existing = request.env['swa.item.staging'].sudo().search_count([
             ('item_id', '=', data.get('ItemId'))
         ])
@@ -138,7 +151,7 @@ class StagingDataController(http.Controller):
             request.env['swa.item.staging'].sudo().create(vals)
 
     def _process_cust_vend(self, data):
-        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        vals = self._filter_vals('swa.cust.vend.staging', {self._to_snake_case(k): v for k, v in data.items()})
         existing = request.env['swa.cust.vend.staging'].sudo().search_count([
             ('cust_vend_id', '=', data.get('CustVendId'))
         ])
@@ -146,7 +159,9 @@ class StagingDataController(http.Controller):
             request.env['swa.cust.vend.staging'].sudo().create(vals)
 
     def _process_invent_trans(self, data):
-        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        vals = self._filter_vals('swa.invent.trans.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        if 'trans_date' in vals:
+            vals['trans_date'] = self._parse_date(vals['trans_date'])
         existing = request.env['swa.invent.trans.staging'].sudo().search_count([
             ('orig_rec_id', '=', data.get('OrigRecId'))
         ])
@@ -154,26 +169,31 @@ class StagingDataController(http.Controller):
             request.env['swa.invent.trans.staging'].sudo().create(vals)
 
     def _process_cust_invoice_jour(self, data):
-        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        vals = self._filter_vals('swa.cust.invoice.jour.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        if 'invoice_date' in vals:
+            vals['invoice_date'] = self._parse_date(vals['invoice_date'])
         existing = request.env['swa.cust.invoice.jour.staging'].sudo().search_count([
             ('invoice_id', '=', data.get('InvoiceId')),
-            ('invoice_date', '=', data.get('InvoiceDate'))
+            ('invoice_date', '=', self._parse_date(data.get('InvoiceDate')))
         ])
         if existing == 0:
             request.env['swa.cust.invoice.jour.staging'].sudo().create(vals)
 
     def _process_cust_invoice_trans(self, data):
         vals = {self._to_snake_case(k): v for k, v in data.items()}
+        if 'invoice_date' in vals:
+            vals['invoice_date'] = self._parse_date(vals['invoice_date'])
         # Link to existing journal header
         jour = request.env['swa.cust.invoice.jour.staging'].sudo().search([
             ('invoice_id', '=', data.get('InvoiceId')),
-            ('invoice_date', '=', data.get('InvoiceDate'))
+            ('invoice_date', '=', self._parse_date(data.get('InvoiceDate')))
         ], limit=1)
         if jour:
             vals['jour_id'] = jour.id
+        vals = self._filter_vals('swa.cust.invoice.trans.staging', vals)
         existing = request.env['swa.cust.invoice.trans.staging'].sudo().search_count([
             ('invoice_id', '=', data.get('InvoiceId')),
-            ('invoice_date', '=', data.get('InvoiceDate')),
+            ('invoice_date', '=', self._parse_date(data.get('InvoiceDate'))),
             ('purch_price', '=', data.get('PurchPrice')),
             ('line_amount', '=', data.get('LineAmount')),
         ])

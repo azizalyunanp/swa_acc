@@ -49,8 +49,6 @@
                             <field name="data_trans" nolabel="1"/>
                         </group>
                     </sheet>
-                    <div class="o_attachment_preview"/>
-                    <chatter/>
                 </form>
             </field>
         </record>

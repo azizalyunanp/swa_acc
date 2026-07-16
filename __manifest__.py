@@ -26,6 +26,7 @@ SWA Accounting
     "data": [
         "security/ir.model.access.csv",
         "data/az_giro_sequence.xml",
+        "data/ir_cron_staging.xml",
 
 
         "views/views.xml",
