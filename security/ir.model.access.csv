@@ -40,3 +40,8 @@ access_swa_cust_invoice_trans_staging_user,swa.cust.invoice.trans.staging.user,m
 access_swa_cust_invoice_trans_staging_manager,swa.cust.invoice.trans.staging.manager,model_swa_cust_invoice_trans_staging,account.group_account_manager,1,1,1,1
 access_swa_invent_trans_staging_user,swa.invent.trans.staging.user,model_swa_invent_trans_staging,account.group_account_user,1,0,0,0
 access_swa_invent_trans_staging_manager,swa.invent.trans.staging.manager,model_swa_invent_trans_staging,account.group_account_manager,1,1,1,1
+
+access_swa_sales_table_staging_user,swa.sales.table.staging.user,model_swa_sales_table_staging,account.group_account_user,1,0,0,0
+access_swa_sales_table_staging_manager,swa.sales.table.staging.manager,model_swa_sales_table_staging,account.group_account_manager,1,1,1,1
+access_swa_sales_line_staging_user,swa.sales.line.staging.user,model_swa_sales_line_staging,account.group_account_user,1,0,0,0
+access_swa_sales_line_staging_manager,swa.sales.line.staging.manager,model_swa_sales_line_staging,account.group_account_manager,1,1,1,1

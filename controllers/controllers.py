@@ -124,6 +124,8 @@ class StagingDataController(http.Controller):
             'ALL': self._process_invent_trans,
             'CustInvoiceJour': self._process_cust_invoice_jour,
             'CustInvoiceTrans': self._process_cust_invoice_trans,
+            'SalesTable': self._process_sales_table,
+            'SalesLine': self._process_sales_line,
         }
         return handlers.get(type_trans)
 
@@ -199,3 +201,26 @@ class StagingDataController(http.Controller):
         ])
         if existing == 0:
             request.env['swa.cust.invoice.trans.staging'].sudo().create(vals)
+
+    def _process_sales_table(self, data):
+        vals = self._filter_vals('swa.sales.table.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        existing = request.env['swa.sales.table.staging'].sudo().search_count([
+            ('sales_id', '=', data.get('SalesId'))
+        ])
+        if existing == 0:
+            request.env['swa.sales.table.staging'].sudo().create(vals)
+
+    def _process_sales_line(self, data):
+        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        table = request.env['swa.sales.table.staging'].sudo().search([
+            ('sales_id', '=', data.get('SalesId'))
+        ], limit=1)
+        if table:
+            vals['table_id'] = table.id
+        vals = self._filter_vals('swa.sales.line.staging', vals)
+        existing = request.env['swa.sales.line.staging'].sudo().search_count([
+            ('sales_id', '=', data.get('SalesId')),
+            ('line_num', '=', data.get('LineNum')),
+        ])
+        if existing == 0:
+            request.env['swa.sales.line.staging'].sudo().create(vals)

@@ -10,6 +10,7 @@
                     <field name="item_name"/>
                     <field name="unit_id"/>
                     <field name="type_item"/>
+                    <field name="log" optional="show"/>
                     <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
                 </list>
             </field>
@@ -20,6 +21,10 @@
             <field name="model">swa.item.staging</field>
             <field name="arch" type="xml">
                 <form string="Item Staging">
+                    <header>
+                        <button name="action_create_product" string="Create Product" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
@@ -31,6 +36,9 @@
                                 <field name="type_item"/>
                                 <field name="is_executed"/>
                             </group>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
                         </group>
                     </sheet>
                 </form>
@@ -60,6 +68,15 @@
                 <p class="o_view_nocontent_smiling_face">No Item staging data</p>
                 <p>Staging data for Items imported from AX 2012.</p>
             </field>
+        </record>
+
+        <!-- Server Action: Create Products from staging (appears in Action dropdown) -->
+        <record id="action_server_create_products" model="ir.actions.server">
+            <field name="name">Create Products</field>
+            <field name="model_id" ref="model_swa_item_staging"/>
+            <field name="binding_model_id" ref="model_swa_item_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_create_product()</field>
         </record>
 
         <menuitem id="swa_acc.menu_staging_data"

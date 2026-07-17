@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_sales_table_staging_list" model="ir.ui.view">
+            <field name="name">swa.sales.table.staging.list</field>
+            <field name="model">swa.sales.table.staging</field>
+            <field name="arch" type="xml">
+                <list string="Sales Table Staging" create="false" edit="false" delete="false">
+                    <field name="sales_id"/>
+                    <field name="cust_account"/>
+                    <field name="cust_name"/>
+                    <field name="delivery_date"/>
+                    <field name="currency_code"/>
+                    <field name="log" optional="show"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_sales_table_staging_form" model="ir.ui.view">
+            <field name="name">swa.sales.table.staging.form</field>
+            <field name="model">swa.sales.table.staging</field>
+            <field name="arch" type="xml">
+                <form string="Sales Table Staging">
+                    <header>
+                        <button name="action_create_sale_order" string="Create Sale Order" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="sales_id"/>
+                                <field name="cust_account"/>
+                                <field name="cust_name"/>
+                                <field name="sales_name"/>
+                                <field name="sales_type"/>
+                                <field name="currency_code"/>
+                                <field name="delivery_date"/>
+                            </group>
+                            <group>
+                                <field name="dlv_mode"/>
+                                <field name="dlv_term"/>
+                                <field name="payment"/>
+                                <field name="invent_site_id"/>
+                                <field name="invent_location_id"/>
+                                <field name="tax_group"/>
+                                <field name="is_executed"/>
+                            </group>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Sales Lines">
+                                <field name="line_ids" readonly="1">
+                                    <list>
+                                        <field name="item_id"/>
+                                        <field name="line_num"/>
+                                        <field name="sales_price"/>
+                                        <field name="sales_qty"/>
+                                        <field name="sales_unit"/>
+                                        <field name="log" optional="show"/>
+                                        <field name="is_executed"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_sales_table_staging_search" model="ir.ui.view">
+            <field name="name">swa.sales.table.staging.search</field>
+            <field name="model">swa.sales.table.staging</field>
+            <field name="arch" type="xml">
+                <search string="Sales Table Staging">
+                    <field name="sales_id"/>
+                    <field name="cust_account"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_sales_table_staging" model="ir.actions.act_window">
+            <field name="name">Sales Table Staging</field>
+            <field name="res_model">swa.sales.table.staging</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_sales_table_staging_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No Sales Table staging data</p>
+                <p>Staging data for Sales Orders imported from AX 2012.</p>
+            </field>
+        </record>
+
+        <record id="action_server_create_sale_order" model="ir.actions.server">
+            <field name="name">Create Sale Orders</field>
+            <field name="model_id" ref="model_swa_sales_table_staging"/>
+            <field name="binding_model_id" ref="model_swa_sales_table_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_create_sale_order()</field>
+        </record>
+
+        <menuitem id="menu_sales_table_staging"
+                  name="Sales Table Staging"
+                  parent="swa_acc.menu_staging_data"
+                  action="action_sales_table_staging"
+                  sequence="50"/>
+    </data>
+</odoo>

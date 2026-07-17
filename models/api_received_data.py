@@ -127,6 +127,33 @@ class SwaApiReceivedData(models.Model):
                             else:
                                 _logger.info(f"Record {record.id}: CustInvoiceTrans already exists, skipping")
 
+                        elif record.type_trans == 'SalesTable':
+                            existing = self.env['swa.sales.table.staging'].sudo().search_count([
+                                ('sales_id', '=', item.get('SalesId'))
+                            ])
+                            if existing == 0:
+                                self.env['swa.sales.table.staging'].sudo().create(self._filter_vals('swa.sales.table.staging', vals))
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: SalesTable {item.get('SalesId')} already exists, skipping")
+
+                        elif record.type_trans == 'SalesLine':
+                            table = self.env['swa.sales.table.staging'].sudo().search([
+                                ('sales_id', '=', item.get('SalesId'))
+                            ], limit=1)
+                            if table:
+                                vals['table_id'] = table.id
+                            vals = self._filter_vals('swa.sales.line.staging', vals)
+                            existing = self.env['swa.sales.line.staging'].sudo().search_count([
+                                ('sales_id', '=', item.get('SalesId')),
+                                ('line_num', '=', item.get('LineNum')),
+                            ])
+                            if existing == 0:
+                                self.env['swa.sales.line.staging'].sudo().create(vals)
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: SalesLine already exists, skipping")
+
                         else:
                             _logger.warning(f"Record {record.id}: Unknown type_trans '{record.type_trans}', skipping")
 
