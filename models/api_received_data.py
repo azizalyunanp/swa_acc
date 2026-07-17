@@ -154,6 +154,63 @@ class SwaApiReceivedData(models.Model):
                             else:
                                 _logger.info(f"Record {record.id}: SalesLine already exists, skipping")
 
+                        elif record.type_trans == 'VendInvoiceJour':
+                            existing = self.env['swa.vend.invoice.jour.staging'].sudo().search_count([
+                                ('invoice_id', '=', item.get('InvoiceId')),
+                                ('invoice_date', '=', item.get('InvoiceDate'))
+                            ])
+                            if existing == 0:
+                                self.env['swa.vend.invoice.jour.staging'].sudo().create(self._filter_vals('swa.vend.invoice.jour.staging', vals))
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: VendInvoiceJour {item.get('InvoiceId')} already exists, skipping")
+
+                        elif record.type_trans == 'VendInvoiceTrans':
+                            jour = self.env['swa.vend.invoice.jour.staging'].sudo().search([
+                                ('invoice_id', '=', item.get('InvoiceId')),
+                                ('invoice_date', '=', item.get('InvoiceDate'))
+                            ], limit=1)
+                            if jour:
+                                vals['jour_id'] = jour.id
+                            vals = self._filter_vals('swa.vend.invoice.trans.staging', vals)
+                            existing = self.env['swa.vend.invoice.trans.staging'].sudo().search_count([
+                                ('invoice_id', '=', item.get('InvoiceId')),
+                                ('invoice_date', '=', item.get('InvoiceDate')),
+                                ('line_amount', '=', item.get('LineAmount')),
+                            ])
+                            if existing == 0:
+                                self.env['swa.vend.invoice.trans.staging'].sudo().create(vals)
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: VendInvoiceTrans already exists, skipping")
+
+                        elif record.type_trans == 'PurchTable':
+                            existing = self.env['swa.purch.table.staging'].sudo().search_count([
+                                ('purch_id', '=', item.get('PurchId'))
+                            ])
+                            if existing == 0:
+                                self.env['swa.purch.table.staging'].sudo().create(self._filter_vals('swa.purch.table.staging', vals))
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: PurchTable {item.get('PurchId')} already exists, skipping")
+
+                        elif record.type_trans == 'PurchLine':
+                            table = self.env['swa.purch.table.staging'].sudo().search([
+                                ('purch_id', '=', item.get('PurchId'))
+                            ], limit=1)
+                            if table:
+                                vals['table_id'] = table.id
+                            vals = self._filter_vals('swa.purch.line.staging', vals)
+                            existing = self.env['swa.purch.line.staging'].sudo().search_count([
+                                ('purch_id', '=', item.get('PurchId')),
+                                ('item_id', '=', item.get('ItemId')),
+                            ])
+                            if existing == 0:
+                                self.env['swa.purch.line.staging'].sudo().create(vals)
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: PurchLine already exists, skipping")
+
                         else:
                             _logger.warning(f"Record {record.id}: Unknown type_trans '{record.type_trans}', skipping")
 

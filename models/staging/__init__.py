@@ -5,3 +5,7 @@ from . import cust_invoice_trans_staging
 from . import invent_trans_staging
 from . import sales_table_staging
 from . import sales_line_staging
+from . import vend_invoice_jour_staging
+from . import vend_invoice_trans_staging
+from . import purch_table_staging
+from . import purch_line_staging

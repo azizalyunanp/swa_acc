@@ -45,3 +45,12 @@ access_swa_sales_table_staging_user,swa.sales.table.staging.user,model_swa_sales
 access_swa_sales_table_staging_manager,swa.sales.table.staging.manager,model_swa_sales_table_staging,account.group_account_manager,1,1,1,1
 access_swa_sales_line_staging_user,swa.sales.line.staging.user,model_swa_sales_line_staging,account.group_account_user,1,0,0,0
 access_swa_sales_line_staging_manager,swa.sales.line.staging.manager,model_swa_sales_line_staging,account.group_account_manager,1,1,1,1
+
+access_swa_vend_invoice_jour_staging_user,swa.vend.invoice.jour.staging.user,model_swa_vend_invoice_jour_staging,account.group_account_user,1,0,0,0
+access_swa_vend_invoice_jour_staging_manager,swa.vend.invoice.jour.staging.manager,model_swa_vend_invoice_jour_staging,account.group_account_manager,1,1,1,1
+access_swa_vend_invoice_trans_staging_user,swa.vend.invoice.trans.staging.user,model_swa_vend_invoice_trans_staging,account.group_account_user,1,0,0,0
+access_swa_vend_invoice_trans_staging_manager,swa.vend.invoice.trans.staging.manager,model_swa_vend_invoice_trans_staging,account.group_account_manager,1,1,1,1
+access_swa_purch_table_staging_user,swa.purch.table.staging.user,model_swa_purch_table_staging,account.group_account_user,1,0,0,0
+access_swa_purch_table_staging_manager,swa.purch.table.staging.manager,model_swa_purch_table_staging,account.group_account_manager,1,1,1,1
+access_swa_purch_line_staging_user,swa.purch.line.staging.user,model_swa_purch_line_staging,account.group_account_user,1,0,0,0
+access_swa_purch_line_staging_manager,swa.purch.line.staging.manager,model_swa_purch_line_staging,account.group_account_manager,1,1,1,1

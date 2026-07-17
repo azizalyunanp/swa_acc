@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_purch_table_staging_list" model="ir.ui.view">
+            <field name="name">swa.purch.table.staging.list</field>
+            <field name="model">swa.purch.table.staging</field>
+            <field name="arch" type="xml">
+                <list string="Purch Table Staging" create="false" edit="false" delete="false">
+                    <field name="purch_id"/>
+                    <field name="order_account"/>
+                    <field name="purch_name"/>
+                    <field name="currency_code"/>
+                    <field name="document_status"/>
+                    <field name="log" optional="show"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_purch_table_staging_form" model="ir.ui.view">
+            <field name="name">swa.purch.table.staging.form</field>
+            <field name="model">swa.purch.table.staging</field>
+            <field name="arch" type="xml">
+                <form string="Purch Table Staging">
+                    <header>
+                        <button name="action_create_purchase_order" string="Create Purchase Order" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="purch_id"/>
+                                <field name="order_account"/>
+                                <field name="purch_name"/>
+                                <field name="purchase_type"/>
+                                <field name="currency_code"/>
+                                <field name="document_status"/>
+                            </group>
+                            <group>
+                                <field name="payment"/>
+                                <field name="dlv_mode"/>
+                                <field name="dlv_term"/>
+                                <field name="invent_site_id"/>
+                                <field name="invent_location_id"/>
+                                <field name="is_executed"/>
+                            </group>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Purchase Lines">
+                                <field name="line_ids" readonly="1">
+                                    <list>
+                                        <field name="item_id"/>
+                                        <field name="purch_qty"/>
+                                        <field name="purch_price"/>
+                                        <field name="purch_unit"/>
+                                        <field name="log" optional="show"/>
+                                        <field name="is_executed"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_purch_table_staging_search" model="ir.ui.view">
+            <field name="name">swa.purch.table.staging.search</field>
+            <field name="model">swa.purch.table.staging</field>
+            <field name="arch" type="xml">
+                <search string="Purch Table Staging">
+                    <field name="purch_id"/>
+                    <field name="order_account"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_purch_table_staging" model="ir.actions.act_window">
+            <field name="name">Purch Table Staging</field>
+            <field name="res_model">swa.purch.table.staging</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_purch_table_staging_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No Purch Table staging data</p>
+                <p>Staging data for Purchase Orders imported from AX 2012.</p>
+            </field>
+        </record>
+
+        <record id="action_server_create_purchase_order" model="ir.actions.server">
+            <field name="name">Create Purchase Orders</field>
+            <field name="model_id" ref="model_swa_purch_table_staging"/>
+            <field name="binding_model_id" ref="model_swa_purch_table_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_create_purchase_order()</field>
+        </record>
+
+        <menuitem id="menu_purch_table_staging"
+                  name="Purch Table Staging"
+                  parent="swa_acc.menu_staging_data"
+                  action="action_purch_table_staging"
+                  sequence="70"/>
+    </data>
+</odoo>

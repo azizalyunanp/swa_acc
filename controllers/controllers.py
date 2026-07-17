@@ -126,6 +126,10 @@ class StagingDataController(http.Controller):
             'CustInvoiceTrans': self._process_cust_invoice_trans,
             'SalesTable': self._process_sales_table,
             'SalesLine': self._process_sales_line,
+            'VendInvoiceJour': self._process_vend_invoice_jour,
+            'VendInvoiceTrans': self._process_vend_invoice_trans,
+            'PurchTable': self._process_purch_table,
+            'PurchLine': self._process_purch_line,
         }
         return handlers.get(type_trans)
 
@@ -224,3 +228,52 @@ class StagingDataController(http.Controller):
         ])
         if existing == 0:
             request.env['swa.sales.line.staging'].sudo().create(vals)
+
+    def _process_vend_invoice_jour(self, data):
+        vals = self._filter_vals('swa.vend.invoice.jour.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        existing = request.env['swa.vend.invoice.jour.staging'].sudo().search_count([
+            ('invoice_id', '=', data.get('InvoiceId')),
+            ('invoice_date', '=', data.get('InvoiceDate'))
+        ])
+        if existing == 0:
+            request.env['swa.vend.invoice.jour.staging'].sudo().create(vals)
+
+    def _process_vend_invoice_trans(self, data):
+        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        jour = request.env['swa.vend.invoice.jour.staging'].sudo().search([
+            ('invoice_id', '=', data.get('InvoiceId')),
+            ('invoice_date', '=', data.get('InvoiceDate'))
+        ], limit=1)
+        if jour:
+            vals['jour_id'] = jour.id
+        vals = self._filter_vals('swa.vend.invoice.trans.staging', vals)
+        existing = request.env['swa.vend.invoice.trans.staging'].sudo().search_count([
+            ('invoice_id', '=', data.get('InvoiceId')),
+            ('invoice_date', '=', data.get('InvoiceDate')),
+            ('line_amount', '=', data.get('LineAmount')),
+        ])
+        if existing == 0:
+            request.env['swa.vend.invoice.trans.staging'].sudo().create(vals)
+
+    def _process_purch_table(self, data):
+        vals = self._filter_vals('swa.purch.table.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        existing = request.env['swa.purch.table.staging'].sudo().search_count([
+            ('purch_id', '=', data.get('PurchId'))
+        ])
+        if existing == 0:
+            request.env['swa.purch.table.staging'].sudo().create(vals)
+
+    def _process_purch_line(self, data):
+        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        table = request.env['swa.purch.table.staging'].sudo().search([
+            ('purch_id', '=', data.get('PurchId'))
+        ], limit=1)
+        if table:
+            vals['table_id'] = table.id
+        vals = self._filter_vals('swa.purch.line.staging', vals)
+        existing = request.env['swa.purch.line.staging'].sudo().search_count([
+            ('purch_id', '=', data.get('PurchId')),
+            ('item_id', '=', data.get('ItemId')),
+        ])
+        if existing == 0:
+            request.env['swa.purch.line.staging'].sudo().create(vals)
