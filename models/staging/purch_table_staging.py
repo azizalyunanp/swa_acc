@@ -52,6 +52,12 @@ class SwaPurchTableStaging(models.Model):
                     ('name', '=', rec.currency_code)
                 ], limit=1) if rec.currency_code else False
 
+                # Resolve company from staging setup
+                setup = self.env['swa.staging.setup'].sudo().search([
+                    ('invent_site_id', '=', rec.invent_site_id),
+                    ('active', '=', True),
+                ], limit=1)
+
                 # Link any unlinked PurchLine records with matching purch_id
                 unlinked = self.env['swa.purch.line.staging'].sudo().search([
                     ('purch_id', '=', rec.purch_id),
@@ -66,9 +72,10 @@ class SwaPurchTableStaging(models.Model):
                 for line in rec.line_ids:
                     product = self.env['product.product'].sudo().search([
                         ('default_code', '=', line.item_id)
-                    ], limit=1)
+                    ], limit=1) if line.item_id else False
                     if not product:
-                        line.write({'log': f"Error: Product with default_code '{line.item_id}' not found. Purchase Order not created."})
+                        msg = f"Error: Item ID '{line.item_id}' not found. Purchase Order not created." if line.item_id else "Error: Item ID is empty. Purchase Order not created."
+                        line.write({'log': msg})
                         all_lines_valid = False
                         continue
                     line_products.append((line, product))
@@ -77,11 +84,27 @@ class SwaPurchTableStaging(models.Model):
                     rec.write({'log': f"Error: One or more products not found for Purchase ID '{rec.purch_id}'. Purchase Order not created."})
                     continue
 
+                # Auto-create warehouse if invent_location_id not found
+                wh = False
+                if rec.invent_location_id:
+                    wh = self.env['stock.warehouse'].sudo().search([
+                        ('code', '=ilike', rec.invent_location_id.strip())
+                    ], limit=1)
+                    if not wh:
+                        wh_company = setup.company_id if setup else self.env.company
+                        wh = self.env['stock.warehouse'].sudo().create({
+                            'name': rec.invent_location_id,
+                            'code': rec.invent_location_id,
+                            'company_id': wh_company.id,
+                        })
+                        _logger.info(f"Created warehouse: {rec.invent_location_id} (ID: {wh.id})")
+
                 # All validation passed: create order
                 order = self.env['purchase.order'].sudo().create({
                     'name': rec.purch_id,
                     'partner_id': partner.id,
                     'currency_id': currency.id if currency else False,
+                    'company_id': setup.company_id.id if setup else False,
                     'partner_ref': rec.purch_id,
                 })
                 lines_created = 0

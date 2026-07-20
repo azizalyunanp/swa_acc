@@ -33,12 +33,14 @@ class SwaItemStaging(models.Model):
 
                 uom_id = self._get_or_create_uom(rec.unit_id) if rec.unit_id else False
 
+                product_type = 'service' if rec.item_id and rec.item_id.startswith('80') else 'consu'
+
                 product = self.env['product.product'].sudo().create({
                     'default_code': rec.item_id,
                     'name': rec.item_name or rec.item_id,
                     'uom_id': uom_id,
                     'uom_po_id': uom_id,
-                    'type': 'consu',
+                    'type': product_type,
                 })
                 rec.write({
                     'is_executed': 'Yes',

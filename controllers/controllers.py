@@ -57,6 +57,8 @@ class SynchDataController(http.Controller):
         return "Endpoint synchronize_data berfungsi dengan baik!"
 
 
+
+
 class StagingDataController(http.Controller):
 
     @http.route('/handle_staging_data', type='http', auth="none", methods=['POST'], csrf=False)

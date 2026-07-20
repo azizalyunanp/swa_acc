@@ -35,8 +35,13 @@
                                 <field name="tax_amount"/>
                                 <field name="incl_tax"/>
                                 <field name="tax_group"/>
+                                <field name="invent_site_id"/>
+                                <field name="invent_location_id"/>
                                 <field name="is_executed"/>
                             </group>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
                         </group>
                         <notebook>
                             <page string="Invoice Lines">

@@ -47,6 +47,7 @@ SWA Accounting
         "views/staging/sales_table_staging_views.xml",
         "views/staging/vend_invoice_jour_staging_views.xml",
         "views/staging/purch_table_staging_views.xml",
+        "views/staging/staging_setup_views.xml",
 
         "views/foh/setup/az_mapping_account_foh_views.xml",
         "views/foh/setup/az_mapping_item_foh_views.xml",

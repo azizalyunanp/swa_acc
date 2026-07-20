@@ -22,6 +22,10 @@
             <field name="model">swa.vend.invoice.jour.staging</field>
             <field name="arch" type="xml">
                 <form string="Vend Invoice Jour Staging">
+                    <header>
+                        <button name="action_receive_and_bill" string="Receive &amp; Bill" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
@@ -30,6 +34,7 @@
                                 <field name="invoice_date"/>
                                 <field name="currency"/>
                                 <field name="internal_packing_slip"/>
+                                <field name="purch_id"/>
                             </group>
                             <group>
                                 <field name="invoice_amount"/>
@@ -37,6 +42,8 @@
                                 <field name="tax_amount"/>
                                 <field name="incl_tax"/>
                                 <field name="tax_group"/>
+                                <field name="invent_site_id"/>
+                                <field name="invent_location_id"/>
                                 <field name="is_executed"/>
                             </group>
                         </group>
@@ -47,9 +54,13 @@
                             <page string="Invoice Lines">
                                 <field name="line_ids" readonly="1">
                                     <list>
+                                        <field name="invoice_id"/>
+                                        <field name="item_id"/>
                                         <field name="purch_price"/>
+                                        <field name="qty"/>
                                         <field name="line_amount"/>
                                         <field name="tax_item_group"/>
+                                        <field name="orig_purch_id" optional="show"/>
                                         <field name="log" optional="show"/>
                                         <field name="is_executed"/>
                                     </list>
@@ -84,6 +95,14 @@
                 <p class="o_view_nocontent_smiling_face">No Vend Invoice Jour staging data</p>
                 <p>Staging data for Vendor Invoice Journals imported from AX 2012.</p>
             </field>
+        </record>
+
+        <record id="action_server_receive_and_bill" model="ir.actions.server">
+            <field name="name">Receive &amp; Bill</field>
+            <field name="model_id" ref="model_swa_vend_invoice_jour_staging"/>
+            <field name="binding_model_id" ref="model_swa_vend_invoice_jour_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_receive_and_bill()</field>
         </record>
 
         <menuitem id="menu_vend_invoice_jour_staging"

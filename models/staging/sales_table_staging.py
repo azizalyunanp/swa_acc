@@ -55,6 +55,12 @@ class SwaSalesTableStaging(models.Model):
                     ('name', '=', rec.currency_code)
                 ], limit=1) if rec.currency_code else False
 
+                # Resolve company from staging setup
+                setup = self.env['swa.staging.setup'].sudo().search([
+                    ('invent_site_id', '=', rec.invent_site_id),
+                    ('active', '=', True),
+                ], limit=1)
+
                 # Link any unlinked SalesLine records with matching sales_id
                 unlinked = self.env['swa.sales.line.staging'].sudo().search([
                     ('sales_id', '=', rec.sales_id),
@@ -69,9 +75,10 @@ class SwaSalesTableStaging(models.Model):
                 for line in rec.line_ids:
                     product = self.env['product.product'].sudo().search([
                         ('default_code', '=', line.item_id)
-                    ], limit=1)
+                    ], limit=1) if line.item_id else False
                     if not product:
-                        line.write({'log': f"Error: Product with default_code '{line.item_id}' not found. Sale Order not created."})
+                        msg = f"Error: Item ID '{line.item_id}' not found. Sale Order not created." if line.item_id else "Error: Item ID is empty. Sale Order not created."
+                        line.write({'log': msg})
                         all_lines_valid = False
                         continue
                     line_products.append((line, product))
@@ -87,6 +94,7 @@ class SwaSalesTableStaging(models.Model):
                     'partner_invoice_id': partner.id,
                     'partner_shipping_id': partner.id,
                     'currency_id': currency.id if currency else False,
+                    'company_id': setup.company_id.id if setup else False,
                     'client_order_ref': rec.sales_id,
                 })
                 lines_created = 0

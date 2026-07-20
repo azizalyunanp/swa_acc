@@ -14,10 +14,13 @@ class SwaCustInvoiceJourStaging(models.Model):
     invoice_amount = fields.Float(string='Invoice Amount')
     invoice_amount_mst = fields.Float(string='Invoice Amount (MST)')
     tax_amount = fields.Float(string='Tax Amount')
+    invent_site_id = fields.Char(string='Invent Site ID')
+    invent_location_id = fields.Char(string='Invent Location ID')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')
     ], string='Is Executed', default='No')
+    log = fields.Text(string='Log')
     line_ids = fields.One2many(
         'swa.cust.invoice.trans.staging', 'jour_id',
         string='Invoice Lines')

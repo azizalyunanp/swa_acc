@@ -18,7 +18,7 @@ class SwaPurchLineStaging(models.Model):
     purch_unit = fields.Char(string='Purch Unit')
     remain_purch_physical = fields.Float(string='Remain Purch Physical')
     purch_qty = fields.Float(string='Purch Qty')
-    data_area_id = fields.Char(string='Data Area ID')
+    # data_area_id = fields.Char(string='Data Area ID')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')

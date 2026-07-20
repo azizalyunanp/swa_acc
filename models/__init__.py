@@ -15,3 +15,7 @@ from . import user_defined
 from . import api_received_data
 # ── AX 2012 Staging models ──────────────────────────────────────────
 from . import staging
+
+# ── Inherit / Extension models ──────────────────────────────────────
+from . import stock_picking
+from . import account_move

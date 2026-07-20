@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_staging_setup_list" model="ir.ui.view">
+            <field name="name">swa.staging.setup.list</field>
+            <field name="model">swa.staging.setup</field>
+            <field name="arch" type="xml">
+                <list string="Staging Setup">
+                    <field name="name"/>
+                    <field name="invent_site_id"/>
+                    <field name="company_id"/>
+                    <field name="active"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_staging_setup_form" model="ir.ui.view">
+            <field name="name">swa.staging.setup.form</field>
+            <field name="model">swa.staging.setup</field>
+            <field name="arch" type="xml">
+                <form string="Staging Setup">
+                    <header>
+                        <button name="action_fix_chart_template" string="Fix Chart Template" type="object"
+                                class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="invent_site_id"/>
+                            </group>
+                            <group>
+                                <field name="company_id"/>
+                                <field name="active"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_staging_setup" model="ir.actions.act_window">
+            <field name="name">Staging Setup</field>
+            <field name="res_model">swa.staging.setup</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create a new mapping</p>
+                <p>Map Invent Site ID from AX 2012 to Odoo Company.</p>
+            </field>
+        </record>
+
+        <menuitem id="menu_staging_setup"
+                  name="Staging Setup"
+                  parent="swa_acc.menu_staging_data"
+                  action="action_staging_setup"
+                  sequence="5"/>
+    </data>
+</odoo>

@@ -54,3 +54,6 @@ access_swa_purch_table_staging_user,swa.purch.table.staging.user,model_swa_purch
 access_swa_purch_table_staging_manager,swa.purch.table.staging.manager,model_swa_purch_table_staging,account.group_account_manager,1,1,1,1
 access_swa_purch_line_staging_user,swa.purch.line.staging.user,model_swa_purch_line_staging,account.group_account_user,1,0,0,0
 access_swa_purch_line_staging_manager,swa.purch.line.staging.manager,model_swa_purch_line_staging,account.group_account_manager,1,1,1,1
+
+access_swa_staging_setup_user,swa.staging.setup.user,model_swa_staging_setup,account.group_account_user,1,0,0,0
+access_swa_staging_setup_manager,swa.staging.setup.manager,model_swa_staging_setup,account.group_account_manager,1,1,1,1
