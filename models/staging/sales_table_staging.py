@@ -44,6 +44,17 @@ class SwaSalesTableStaging(models.Model):
     def action_create_sale_order(self):
         for rec in self:
             try:
+                # Duplicate check
+                existing_so = self.env['sale.order'].sudo().search([
+                    ('name', '=', rec.sales_id)
+                ], limit=1)
+                if existing_so:
+                    rec.write({
+                        'is_executed': 'Yes',
+                        'log': f"Skipped: Sale Order '{rec.sales_id}' already exists (ID: {existing_so.id})"
+                    })
+                    continue
+
                 partner = self.env['res.partner'].sudo().search([
                     ('ref', '=', rec.cust_account)
                 ], limit=1)

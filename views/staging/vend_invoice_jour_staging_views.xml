@@ -59,6 +59,7 @@
                                         <field name="purch_price"/>
                                         <field name="qty"/>
                                         <field name="line_amount"/>
+                                        <field name="harga_penyerahan"/>
                                         <field name="tax_item_group"/>
                                         <field name="orig_purch_id" optional="show"/>
                                         <field name="log" optional="show"/>

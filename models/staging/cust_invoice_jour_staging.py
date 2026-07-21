@@ -1,4 +1,7 @@
-from odoo import models, fields
+from odoo import models, fields, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class SwaCustInvoiceJourStaging(models.Model):
@@ -16,6 +19,7 @@ class SwaCustInvoiceJourStaging(models.Model):
     tax_amount = fields.Float(string='Tax Amount')
     invent_site_id = fields.Char(string='Invent Site ID')
     invent_location_id = fields.Char(string='Invent Location ID')
+    sales_id = fields.Char(string='Sales ID')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')
@@ -24,3 +28,119 @@ class SwaCustInvoiceJourStaging(models.Model):
     line_ids = fields.One2many(
         'swa.cust.invoice.trans.staging', 'jour_id',
         string='Invoice Lines')
+
+    def action_deliver_and_invoice(self):
+        for rec in self:
+            try:
+                sale = self.env['sale.order'].sudo().search([
+                    ('name', '=', rec.sales_id)
+                ], limit=1)
+                if not sale:
+                    rec.write({'log': f"Error: Sale Order '{rec.sales_id}' not found."})
+                    continue
+
+                partner = self.env['res.partner'].sudo().search([
+                    ('ref', '=', rec.invoice_account),
+                    ('customer_rank', '>', 0),
+                ], limit=1)
+                if not partner:
+                    rec.write({'log': f"Error: Customer with ref '{rec.invoice_account}' not found."})
+                    continue
+
+                pickings = sale.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
+                if not pickings:
+                    rec.write({'log': 'Warning: No pending pickings found for this sale order.'})
+                    continue
+
+                # Validate all products and accounts first
+                line_data = []
+                for line in rec.line_ids:
+                    product = self.env['product.product'].sudo().search([
+                        ('default_code', '=', line.item_id)
+                    ], limit=1) if line.item_id else False
+                    if not product:
+                        msg = f"Error: Item ID '{line.item_id}' not found." if line.item_id else "Error: Item ID is empty."
+                        line.write({'log': msg})
+                        continue
+                    account = product.property_account_income_id or product.categ_id.property_account_income_categ_id
+                    if not account:
+                        line.write({'log': f"Error: No income account for product '{product.default_code}'."})
+                        continue
+                    line_data.append((line, product, account))
+
+                if not line_data:
+                    rec.write({'log': 'Error: No valid invoice lines. Invoice not created.'})
+                    continue
+
+                # Auto-create warehouse
+                for line in rec.line_ids:
+                    if line.invent_location_id:
+                        wh = self._get_or_create_warehouse(line.invent_location_id)
+
+                # Resolve company from staging setup
+                company = False
+                if rec.invent_site_id:
+                    setup = self.env['swa.staging.setup'].sudo().search([
+                        ('invent_site_id', '=', rec.invent_site_id),
+                        ('active', '=', True),
+                    ], limit=1)
+                    if setup:
+                        company = setup.company_id
+
+                # Create customer invoice
+                invoice = self.env['account.move'].sudo().create({
+                    'partner_id': partner.id,
+                    'move_type': 'out_invoice',
+                    'name': rec.invoice_id,
+                    'invoice_date': rec.invoice_date,
+                    'invoice_origin': rec.sales_id or '',
+                    'company_id': company.id if company else False,
+                })
+
+                lines_created = 0
+                for line, product, account in line_data:
+                    self.env['account.move.line'].sudo().create({
+                        'move_id': invoice.id,
+                        'product_id': product.id,
+                        'account_id': account.id,
+                        'quantity': line.qty or 0,
+                        'price_unit': line.purch_price or 0,
+                        'name': product.name,
+                    })
+                    line.write({
+                        'is_executed': 'Yes',
+                        'log': f'Success: Invoice line created (Invoice: {invoice.name})',
+                    })
+                    lines_created += 1
+
+                # Post invoice
+                invoice.action_post()
+
+                # Validate delivery
+                for picking in pickings:
+                    picking.button_validate()
+
+                rec.write({
+                    'is_executed': 'Yes',
+                    'log': f"Success: Delivered & Invoiced (Picking: {pickings[0].name}, Invoice: {invoice.name}) with {lines_created} line(s)",
+                })
+
+            except Exception as e:
+                rec.write({'log': f"Error: {str(e)}"})
+                _logger.error(f"CustInvoiceJour {rec.id} action_deliver_and_invoice error: {str(e)}")
+
+    def _get_or_create_warehouse(self, location_id):
+        if not location_id:
+            return False
+        wh = self.env['stock.warehouse'].sudo().search([
+            ('code', '=ilike', location_id.strip())
+        ], limit=1)
+        if not wh:
+            company = self.env.company
+            wh = self.env['stock.warehouse'].sudo().create({
+                'name': location_id,
+                'code': location_id,
+                'company_id': company.id,
+            })
+            _logger.info(f"Created warehouse: {location_id} (ID: {wh.id})")
+        return wh

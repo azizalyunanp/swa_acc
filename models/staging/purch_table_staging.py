@@ -41,6 +41,17 @@ class SwaPurchTableStaging(models.Model):
     def action_create_purchase_order(self):
         for rec in self:
             try:
+                # Duplicate check
+                existing_po = self.env['purchase.order'].sudo().search([
+                    ('name', '=', rec.purch_id)
+                ], limit=1)
+                if existing_po:
+                    rec.write({
+                        'is_executed': 'Yes',
+                        'log': f"Skipped: Purchase Order '{rec.purch_id}' already exists (ID: {existing_po.id})"
+                    })
+                    continue
+
                 partner = self.env['res.partner'].sudo().search([
                     ('ref', '=', rec.order_account)
                 ], limit=1)

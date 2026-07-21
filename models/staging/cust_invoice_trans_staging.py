@@ -17,6 +17,8 @@ class SwaCustInvoiceTransStaging(models.Model):
     invent_location_id = fields.Char(string='Invent Location ID')
     qty = fields.Float(string='Qty')
     item_id = fields.Char(string='Item ID')
+    harga_penyerahan = fields.Float(string='Harga Penyerahan')
+    orig_sales_id = fields.Char(string='Orig Sales ID')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')

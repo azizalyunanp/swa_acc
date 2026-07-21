@@ -222,3 +222,29 @@ class SwaApiReceivedData(models.Model):
 
         _logger.info(f"Cron: finished. Total staging records created: {total_created}")
         return True
+
+    def action_auto_migrate(self):
+        _logger.info("Auto-migrate: started")
+
+        # 1. Process products from ItemStaging
+        items = self.env['swa.item.staging'].sudo().search([('is_executed', '=', 'No')])
+        items.action_create_product()
+        _logger.info(f"Auto-migrate: processed {len(items)} item(s)")
+
+        # 2. Process partners from CustVendStaging
+        partners = self.env['swa.cust.vend.staging'].sudo().search([('is_executed', '=', 'No')])
+        partners.action_create_partner()
+        _logger.info(f"Auto-migrate: processed {len(partners)} partner(s)")
+
+        # 3. Process sale orders from SalesTableStaging
+        sales = self.env['swa.sales.table.staging'].sudo().search([('is_executed', '=', 'No')])
+        sales.action_create_sale_order()
+        _logger.info(f"Auto-migrate: processed {len(sales)} sale order(s)")
+
+        # 4. Process purchase orders from PurchTableStaging
+        purchases = self.env['swa.purch.table.staging'].sudo().search([('is_executed', '=', 'No')])
+        purchases.action_create_purchase_order()
+        _logger.info(f"Auto-migrate: processed {len(purchases)} purchase order(s)")
+
+        _logger.info("Auto-migrate: finished")
+        return True

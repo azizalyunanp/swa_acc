@@ -57,7 +57,8 @@ class SwaVendInvoiceJourStaging(models.Model):
                     continue
 
                 partner = self.env['res.partner'].sudo().search([
-                    ('ref', '=', rec.invoice_account)
+                    ('ref', '=', rec.invoice_account),
+                    ('supplier_rank', '>', 0),
                 ], limit=1)
                 if not partner:
                     rec.write({'log': f"Error: Partner with ref '{rec.invoice_account}' not found."})
@@ -117,15 +118,9 @@ class SwaVendInvoiceJourStaging(models.Model):
                     po = self.env['purchase.order'].sudo().search([
                         ('name', '=', rec.purch_id)
                     ], limit=1)
-                    if po:
-                        # Link bill to PO via ORM (not raw SQL)
-                        po_lines_by_product = {l.product_id.id: l for l in po.order_line}
-                        self.env.cr.execute(
-                            "INSERT INTO account_move_purchase_order_rel (account_move_id, purchase_order_id) VALUES (%s, %s)",
-                            (bill.id, po.id)
-                        )
 
                 lines_created = 0
+                po_lines_by_product = {l.product_id.id: l for l in po.order_line} if po else {}
                 for line, product, account in line_data:
                     aml = self.env['account.move.line'].sudo().create({
                         'move_id': bill.id,

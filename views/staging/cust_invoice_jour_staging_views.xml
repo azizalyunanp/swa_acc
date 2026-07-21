@@ -11,6 +11,8 @@
                     <field name="invoice_date"/>
                     <field name="currency"/>
                     <field name="invoice_amount"/>
+                    <field name="sales_id" optional="show"/>
+                    <field name="log" optional="show"/>
                     <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
                 </list>
             </field>
@@ -21,6 +23,10 @@
             <field name="model">swa.cust.invoice.jour.staging</field>
             <field name="arch" type="xml">
                 <form string="Cust Invoice Jour Staging">
+                    <header>
+                        <button name="action_deliver_and_invoice" string="Deliver &amp; Invoice" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
@@ -28,6 +34,7 @@
                                 <field name="invoice_account"/>
                                 <field name="invoice_date"/>
                                 <field name="currency"/>
+                                <field name="sales_id"/>
                             </group>
                             <group>
                                 <field name="invoice_amount"/>
@@ -48,10 +55,14 @@
                                 <field name="line_ids" readonly="1">
                                     <list>
                                         <field name="invoice_id"/>
-                                        <field name="invoice_date"/>
+                                        <field name="item_id"/>
                                         <field name="purch_price"/>
+                                        <field name="qty"/>
                                         <field name="line_amount"/>
+                                        <field name="harga_penyerahan"/>
                                         <field name="tax_item_group"/>
+                                        <field name="orig_sales_id" optional="show"/>
+                                        <field name="log" optional="show"/>
                                         <field name="is_executed"/>
                                     </list>
                                 </field>
@@ -87,6 +98,14 @@
                 <p class="o_view_nocontent_smiling_face">No Cust Invoice Jour staging data</p>
                 <p>Staging data for Customer Invoice Journals imported from AX 2012.</p>
             </field>
+        </record>
+
+        <record id="action_server_deliver_invoice" model="ir.actions.server">
+            <field name="name">Deliver &amp; Invoice</field>
+            <field name="model_id" ref="model_swa_cust_invoice_jour_staging"/>
+            <field name="binding_model_id" ref="model_swa_cust_invoice_jour_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_deliver_and_invoice()</field>
         </record>
 
         <menuitem id="menu_cust_invoice_jour_staging"
