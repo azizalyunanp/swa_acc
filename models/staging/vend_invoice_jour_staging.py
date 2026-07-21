@@ -56,32 +56,19 @@ class SwaVendInvoiceJourStaging(models.Model):
                     rec.write({'log': f"Error: Purchase Order '{rec.purch_id}' not found."})
                     continue
 
-                # Auto-create warehouse for each line's invent_location_id
-                for line in rec.line_ids:
-                    if line.invent_location_id:
-                        self._get_or_create_warehouse(line.invent_location_id)
+                partner = self.env['res.partner'].sudo().search([
+                    ('ref', '=', rec.invoice_account)
+                ], limit=1)
+                if not partner:
+                    rec.write({'log': f"Error: Partner with ref '{rec.invoice_account}' not found."})
+                    continue
 
-                # Validate receipt
                 pickings = purchase.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
                 if not pickings:
                     rec.write({'log': 'Warning: No pending pickings found for this purchase order.'})
                     continue
 
-                validated_picking = False
-                for picking in pickings:
-                    picking.button_validate()
-                    picking.write({'swa_receipt_reference': rec.invoice_id})
-                    validated_picking = picking
-
-                # Create vendor bill
-                partner = self.env['res.partner'].sudo().search([
-                    ('ref', '=', rec.invoice_account)
-                ], limit=1)
-                if not partner:
-                    rec.write({'log': f"Error: Partner with ref '{rec.invoice_account}' not found. Bill not created."})
-                    continue
-
-                all_valid = True
+                # Validate all products and accounts first (before any changes)
                 line_data = []
                 for line in rec.line_ids:
                     product = self.env['product.product'].sudo().search([
@@ -90,42 +77,57 @@ class SwaVendInvoiceJourStaging(models.Model):
                     if not product:
                         msg = f"Error: Item ID '{line.item_id}' not found." if line.item_id else "Error: Item ID is empty."
                         line.write({'log': msg})
-                        all_valid = False
                         continue
-                    line_data.append((line, product))
+                    account = product.property_account_expense_id or product.categ_id.property_account_expense_categ_id
+                    if not account:
+                        line.write({'log': f"Error: No expense account for product '{product.default_code}'."})
+                        continue
+                    line_data.append((line, product, account))
 
-                if not all_valid:
-                    rec.write({'log': 'Error: One or more products not found. Vendor bill not created.'})
+                if not line_data:
+                    rec.write({'log': 'Error: No valid bill lines. Bill not created.'})
                     continue
 
+                # Auto-create warehouse for each line's invent_location_id
+                for line in rec.line_ids:
+                    if line.invent_location_id:
+                        self._get_or_create_warehouse(line.invent_location_id)
+
+                # Resolve company from staging setup via invent_site_id
+                company = False
+                if rec.invent_site_id:
+                    setup = self.env['swa.staging.setup'].sudo().search([
+                        ('invent_site_id', '=', rec.invent_site_id),
+                        ('active', '=', True),
+                    ], limit=1)
+                    if setup:
+                        company = setup.company_id
+
+                # Create vendor bill first
                 bill = self.env['account.move'].sudo().create({
                     'partner_id': partner.id,
                     'move_type': 'in_invoice',
                     'name': rec.invoice_id,
                     'invoice_date': rec.invoice_date,
                     'invoice_origin': rec.purch_id or '',
-                    'swa_picking_id': validated_picking.id,
+                    'company_id': company.id if company else False,
                 })
 
                 if rec.purch_id:
-                    purchase = self.env['purchase.order'].sudo().search([
+                    po = self.env['purchase.order'].sudo().search([
                         ('name', '=', rec.purch_id)
                     ], limit=1)
-                    if purchase:
+                    if po:
+                        # Link bill to PO via ORM (not raw SQL)
+                        po_lines_by_product = {l.product_id.id: l for l in po.order_line}
                         self.env.cr.execute(
                             "INSERT INTO account_move_purchase_order_rel (account_move_id, purchase_order_id) VALUES (%s, %s)",
-                            (bill.id, purchase.id)
+                            (bill.id, po.id)
                         )
-                lines_created = 0
-                skip_bill = False
 
-                for line, product in line_data:
-                    account = product.property_account_expense_id or product.categ_id.property_account_expense_categ_id
-                    if not account:
-                        line.write({'log': f"Error: No expense account for product '{product.default_code}'. Skipping line."})
-                        skip_bill = True
-                        continue
-                    self.env['account.move.line'].sudo().create({
+                lines_created = 0
+                for line, product, account in line_data:
+                    aml = self.env['account.move.line'].sudo().create({
                         'move_id': bill.id,
                         'product_id': product.id,
                         'account_id': account.id,
@@ -133,20 +135,29 @@ class SwaVendInvoiceJourStaging(models.Model):
                         'price_unit': line.purch_price or 0,
                         'name': product.name,
                     })
+                    # Link bill line to purchase order line by product
+                    if po and product.id in po_lines_by_product:
+                        aml.sudo().write({'purchase_line_id': po_lines_by_product[product.id].id})
                     line.write({
                         'is_executed': 'Yes',
                         'log': f'Success: Bill line created (Bill: {bill.name})',
                     })
                     lines_created += 1
 
-                if skip_bill and lines_created == 0:
-                    bill.unlink()
-                    rec.write({'log': 'Error: No valid bill lines. No expense accounts found for products.'})
-                    continue
+                # Post the bill
+                bill.action_post()
+
+                # Only now validate the picking (after bill is confirmed)
+                for picking in pickings:
+                    picking.button_validate()
+                    picking.write({
+                        'swa_receipt_reference': rec.invoice_id,
+                        'company_id': company.id if company else picking.company_id.id,
+                    })
 
                 rec.write({
                     'is_executed': 'Yes',
-                    'log': f"Success: Received & Billed (Picking: {validated_picking.name}, Bill: {bill.name}) with {lines_created} line(s)",
+                    'log': f"Success: Received & Billed (Picking: {pickings[0].name}, Bill: {bill.name}) with {lines_created} line(s)",
                 })
 
             except Exception as e:

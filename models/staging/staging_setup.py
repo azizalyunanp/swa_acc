@@ -14,8 +14,7 @@ class SwaStagingSetup(models.Model):
         company = self.env['res.company'].sudo().search([], limit=1)
         if not company:
             return self._notification('Error', 'No company found.', 'danger')
-
-        # Always set to 'id' (Indonesian accounts already exist in DB from l10n_id)
+ 
         company.sudo().write({'chart_template': 'id'})
         return self._notification('Success', 'chart_template set to "id" (Indonesia). Reload page.', 'success')
 
