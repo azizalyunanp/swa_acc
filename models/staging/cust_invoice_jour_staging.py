@@ -87,8 +87,26 @@ class SwaCustInvoiceJourStaging(models.Model):
                     if setup:
                         company = setup.company_id
 
+                company_ids = [company.id] if company else self.env.company.ids
+                ctx = {'allowed_company_ids': company_ids}
+
+                # Validate delivery FIRST (picking must succeed before invoice)
+                for picking in pickings:
+                    try:
+                        picking.sudo().with_context(**ctx).action_confirm()
+                        picking.sudo().with_context(**ctx).action_assign()
+                        picking.sudo().with_context(skip_backorder=True, **ctx).button_validate()
+                    except Exception as pick_err:
+                        raise ValueError(f"Picking {picking.name} validation failed: {pick_err}")
+                    picking.write({
+                        'swa_receipt_reference': rec.invoice_id,
+                        'company_id': company.id if company else picking.company_id.id,
+                    })
+                    if picking.state != 'done':
+                        raise ValueError(f"Picking {picking.name} state is still '{picking.state}' after validation")
+
                 # Create customer invoice
-                invoice = self.env['account.move'].sudo().create({
+                invoice = self.env['account.move'].sudo().with_context(**ctx).create({
                     'partner_id': partner.id,
                     'move_type': 'out_invoice',
                     'name': rec.invoice_id,
@@ -97,16 +115,22 @@ class SwaCustInvoiceJourStaging(models.Model):
                     'company_id': company.id if company else False,
                 })
 
+                # Link invoice to sale order via sale_line_id on each line
+                so_lines_by_product = {l.product_id.id: l for l in sale.order_line} if sale else {}
+
                 lines_created = 0
                 for line, product, account in line_data:
-                    self.env['account.move.line'].sudo().create({
+                    aml_vals = {
                         'move_id': invoice.id,
                         'product_id': product.id,
                         'account_id': account.id,
                         'quantity': line.qty or 0,
                         'price_unit': line.purch_price or 0,
                         'name': product.name,
-                    })
+                    }
+                    if sale and product.id in so_lines_by_product:
+                        aml_vals['sale_line_ids'] = [(4, so_lines_by_product[product.id].id, False)]
+                    self.env['account.move.line'].sudo().create(aml_vals)
                     line.write({
                         'is_executed': 'Yes',
                         'log': f'Success: Invoice line created (Invoice: {invoice.name})',
@@ -114,11 +138,10 @@ class SwaCustInvoiceJourStaging(models.Model):
                     lines_created += 1
 
                 # Post invoice
-                invoice.action_post()
+                invoice.sudo().with_context(**ctx).action_post()
 
-                # Validate delivery
-                for picking in pickings:
-                    picking.button_validate()
+                # Link invoice to delivery picking
+                invoice.write({'picking_id': pickings[0].id})
 
                 rec.write({
                     'is_executed': 'Yes',

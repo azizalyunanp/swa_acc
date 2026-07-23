@@ -104,8 +104,26 @@ class SwaVendInvoiceJourStaging(models.Model):
                     if setup:
                         company = setup.company_id
 
-                # Create vendor bill first
-                bill = self.env['account.move'].sudo().create({
+                company_ids = [company.id] if company else self.env.company.ids
+                ctx = {'allowed_company_ids': company_ids}
+
+                # Validate picking FIRST (must succeed before bill)
+                for picking in pickings:
+                    try:
+                        picking.sudo().with_context(**ctx).action_confirm()
+                        picking.sudo().with_context(**ctx).action_assign()
+                        picking.sudo().with_context(skip_backorder=True, **ctx).button_validate()
+                    except Exception as pick_err:
+                        raise ValueError(f"Picking {picking.name} validation failed: {pick_err}")
+                    picking.write({
+                        'swa_receipt_reference': rec.invoice_id,
+                        'company_id': company.id if company else picking.company_id.id,
+                    })
+                    if picking.state != 'done':
+                        raise ValueError(f"Picking {picking.name} state is still '{picking.state}' after validation")
+
+                # Create vendor bill
+                bill = self.env['account.move'].sudo().with_context(**ctx).create({
                     'partner_id': partner.id,
                     'move_type': 'in_invoice',
                     'name': rec.invoice_id,
@@ -140,15 +158,10 @@ class SwaVendInvoiceJourStaging(models.Model):
                     lines_created += 1
 
                 # Post the bill
-                bill.action_post()
+                bill.sudo().with_context(**ctx).action_post()
 
-                # Only now validate the picking (after bill is confirmed)
-                for picking in pickings:
-                    picking.button_validate()
-                    picking.write({
-                        'swa_receipt_reference': rec.invoice_id,
-                        'company_id': company.id if company else picking.company_id.id,
-                    })
+                # Link bill to picking
+                bill.write({'picking_id': pickings[0].id})
 
                 rec.write({
                     'is_executed': 'Yes',
