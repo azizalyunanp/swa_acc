@@ -21,41 +21,43 @@ class SwaItemStaging(models.Model):
     def action_create_product(self):
         for rec in self:
             try:
-                existing = self.env['product.product'].sudo().search([
-                    ('default_code', '=', rec.item_id)
-                ], limit=1)
-                if existing:
+                with self.env.cr.savepoint():
+                    existing = self.env['product.product'].sudo().search([
+                        ('default_code', '=', rec.item_id)
+                    ], limit=1)
+                    if existing:
+                        rec.write({
+                            'is_executed': 'Yes',
+                            'log': f"Skipped: Product with default_code '{rec.item_id}' already exists (ID: {existing.id})"
+                        })
+                        continue
+
+                    uom_id = self._get_or_create_uom(rec.unit_id) if rec.unit_id else False
+
+                    categ = self.env.ref('product.product_category_all', raise_if_not_found=False) or False
+                    if rec.type_item:
+                        found = self.env['product.category'].sudo().search([
+                            ('swa_short_code', '=', rec.type_item)
+                        ], limit=1)
+                        if found:
+                            categ = found
+                        else:
+                            _logger.warning(f"ItemStaging {rec.id}: No product category found for swa_short_code '{rec.type_item}', using default")
+
+                    product_type = 'service' if rec.item_id and rec.item_id.startswith('80') else 'consu'
+
+                    product = self.env['product.product'].sudo().create({
+                        'default_code': rec.item_id,
+                        'name': rec.item_name or rec.item_id,
+                        'uom_id': uom_id,
+                        'uom_po_id': uom_id,
+                        'categ_id': categ.id if categ else False,
+                        'type': product_type,
+                    })
                     rec.write({
                         'is_executed': 'Yes',
-                        'log': f"Skipped: Product with default_code '{rec.item_id}' already exists (ID: {existing.id})"
+                        'log': f"Success: Product created (ID: {product.id}, Name: {product.name})"
                     })
-                    continue
-
-                uom_id = self._get_or_create_uom(rec.unit_id) if rec.unit_id else False
-
-                # Look up product category by swa_short_code matching type_item
-                categ = False
-                if rec.type_item:
-                    categ = self.env['product.category'].sudo().search([
-                        ('swa_short_code', '=', rec.type_item)
-                    ], limit=1)
-                    if not categ:
-                        _logger.warning(f"ItemStaging {rec.id}: No product category found for swa_short_code '{rec.type_item}'")
-
-                product_type = 'service' if rec.item_id and rec.item_id.startswith('80') else 'consu'
-
-                product = self.env['product.product'].sudo().create({
-                    'default_code': rec.item_id,
-                    'name': rec.item_name or rec.item_id,
-                    'uom_id': uom_id,
-                    'uom_po_id': uom_id,
-                    'categ_id': categ.id if categ else False,
-                    'type': product_type,
-                })
-                rec.write({
-                    'is_executed': 'Yes',
-                    'log': f"Success: Product created (ID: {product.id}, Name: {product.name})"
-                })
 
             except Exception as e:
                 rec.write({'log': f"Error: {str(e)}"})

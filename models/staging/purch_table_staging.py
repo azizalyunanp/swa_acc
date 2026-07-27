@@ -125,12 +125,21 @@ class SwaPurchTableStaging(models.Model):
                         ('name', '=ilike', (line.purch_unit or '').strip())
                     ], limit=1) if line.purch_unit else False
 
+                    tax = False
+                    if line.tax_group:
+                        tax = self.env['account.tax'].sudo().search([
+                            ('name', '=', line.tax_group),
+                            ('type_tax_use', '=', 'purchase'),
+                            ('company_id', '=', setup.company_id.id if setup else False),
+                        ], limit=1)
+
                     self.env['purchase.order.line'].sudo().create({
                         'order_id': order.id,
                         'product_id': product.id,
                         'product_qty': line.purch_qty or 0,
                         'price_unit': line.purch_price or 0,
                         'product_uom': uom.id if uom else product.uom_id.id,
+                        'taxes_id': [(6, 0, [tax.id])] if tax else False,
                         'name': product.name,
                     })
                     line.write({

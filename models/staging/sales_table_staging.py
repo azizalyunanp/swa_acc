@@ -115,12 +115,21 @@ class SwaSalesTableStaging(models.Model):
                         ('name', '=ilike', (line.sales_unit or '').strip())
                     ], limit=1) if line.sales_unit else False
 
+                    tax = False
+                    if line.tax_group:
+                        tax = self.env['account.tax'].sudo().search([
+                            ('name', '=', line.tax_group),
+                            ('type_tax_use', '=', 'sale'),
+                            ('company_id', '=', setup.company_id.id if setup else False),
+                        ], limit=1)
+
                     self.env['sale.order.line'].sudo().create({
                         'order_id': order.id,
                         'product_id': product.id,
                         'product_uom_qty': line.sales_qty or 0,
                         'price_unit': line.sales_price or 0,
                         'product_uom': uom.id if uom else product.uom_id.id,
+                        'tax_id': [(6, 0, [tax.id])] if tax else False,
                         'sequence': int(line.line_num or 0),
                         'name': product.name,
                     })
