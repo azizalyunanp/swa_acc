@@ -100,10 +100,5 @@
             <field name="code">records.action_create_purchase_order()</field>
         </record>
 
-        <menuitem id="menu_purch_table_staging"
-                  name="Purch Table Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_purch_table_staging"
-                  sequence="70"/>
     </data>
 </odoo>

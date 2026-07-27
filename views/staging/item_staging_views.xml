@@ -79,16 +79,5 @@
             <field name="code">records.action_create_product()</field>
         </record>
 
-        <menuitem id="swa_acc.menu_staging_data"
-                  name="Staging Data"
-                  parent="swa_acc.menu_synchronize_root"
-                  sequence="20"
-                  groups="account.group_account_user"/>
-
-        <menuitem id="menu_item_staging"
-                  name="Item Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_item_staging"
-                  sequence="10"/>
     </data>
 </odoo>

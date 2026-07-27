@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="swa_acc.menu_staging_data"
+              name="Staging Data"
+              parent="swa_acc.menu_synchronize_root"
+              sequence="20"
+              groups="account.group_account_user"/>
+
+    <menuitem id="menu_staging_setup"
+              name="Staging Setup"
+              parent="swa_acc.menu_staging_data"
+              action="action_staging_setup"
+              sequence="5"/>
+
+    <menuitem id="menu_item_staging"
+              name="Item Staging"
+              parent="swa_acc.menu_staging_data"
+              action="action_item_staging"
+              sequence="10"/>
+
+    <menuitem id="menu_cust_vend_staging"
+              name="Cust/Vend Staging"
+              parent="swa_acc.menu_staging_data"
+              action="action_cust_vend_staging"
+              sequence="20"/>
+
+    <menuitem id="menu_invent_trans_staging"
+              name="Invent Trans Staging"
+              parent="swa_acc.menu_staging_data"
+              action="action_invent_trans_staging"
+              sequence="30"/>
+
+    <menuitem id="menu_sales_table_staging"
+              name="Sales Table Staging"
+              parent="swa_acc.menu_staging_data"
+              action="action_sales_table_staging"
+              sequence="40"/>
+
+    <menuitem id="menu_purch_table_staging"
+              name="Purch Table Staging"
+              parent="swa_acc.menu_staging_data"
+              action="action_purch_table_staging"
+              sequence="50"/>
+</odoo>

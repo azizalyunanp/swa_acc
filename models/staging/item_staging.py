@@ -33,6 +33,15 @@ class SwaItemStaging(models.Model):
 
                 uom_id = self._get_or_create_uom(rec.unit_id) if rec.unit_id else False
 
+                # Look up product category by swa_short_code matching type_item
+                categ = False
+                if rec.type_item:
+                    categ = self.env['product.category'].sudo().search([
+                        ('swa_short_code', '=', rec.type_item)
+                    ], limit=1)
+                    if not categ:
+                        _logger.warning(f"ItemStaging {rec.id}: No product category found for swa_short_code '{rec.type_item}'")
+
                 product_type = 'service' if rec.item_id and rec.item_id.startswith('80') else 'consu'
 
                 product = self.env['product.product'].sudo().create({
@@ -40,6 +49,7 @@ class SwaItemStaging(models.Model):
                     'name': rec.item_name or rec.item_id,
                     'uom_id': uom_id,
                     'uom_po_id': uom_id,
+                    'categ_id': categ.id if categ else False,
                     'type': product_type,
                 })
                 rec.write({

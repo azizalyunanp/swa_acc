@@ -106,10 +106,5 @@
             </field>
         </record>
 
-        <menuitem id="menu_invent_trans_staging"
-                  name="Invent Trans Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_invent_trans_staging"
-                  sequence="30"/>
     </data>
 </odoo>

@@ -81,10 +81,5 @@
             <field name="code">records.action_create_partner()</field>
         </record>
 
-        <menuitem id="menu_cust_vend_staging"
-                  name="Cust/Vend Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_cust_vend_staging"
-                  sequence="10"/>
     </data>
 </odoo>

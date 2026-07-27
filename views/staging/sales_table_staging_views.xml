@@ -103,10 +103,5 @@
             <field name="code">records.action_create_sale_order()</field>
         </record>
 
-        <menuitem id="menu_sales_table_staging"
-                  name="Sales Table Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_sales_table_staging"
-                  sequence="50"/>
     </data>
 </odoo>

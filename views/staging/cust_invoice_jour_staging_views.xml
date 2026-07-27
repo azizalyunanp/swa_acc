@@ -108,10 +108,5 @@
             <field name="code">records.action_deliver_and_invoice()</field>
         </record>
 
-        <menuitem id="menu_cust_invoice_jour_staging"
-                  name="Cust Invoice Jour Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_cust_invoice_jour_staging"
-                  sequence="20"/>
     </data>
 </odoo>

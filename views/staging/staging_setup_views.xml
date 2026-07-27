@@ -49,10 +49,5 @@
             </field>
         </record>
 
-        <menuitem id="menu_staging_setup"
-                  name="Staging Setup"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_staging_setup"
-                  sequence="5"/>
     </data>
 </odoo>

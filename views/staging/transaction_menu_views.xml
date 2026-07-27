@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="swa_acc.menu_transaction_root"
+              name="Transaction"
+              parent="swa_acc.menu_synchronize_root"
+              sequence="25"
+              groups="account.group_account_user"/>
+
+    <menuitem id="menu_cust_invoice_jour_staging"
+              name="Cust Invoice Jour Staging"
+              parent="swa_acc.menu_transaction_root"
+              action="action_cust_invoice_jour_staging"
+              sequence="10"/>
+
+    <menuitem id="menu_vend_invoice_jour_staging"
+              name="Vend Invoice Jour Staging"
+              parent="swa_acc.menu_transaction_root"
+              action="action_vend_invoice_jour_staging"
+              sequence="20"/>
+</odoo>

@@ -106,10 +106,5 @@
             <field name="code">records.action_receive_and_bill()</field>
         </record>
 
-        <menuitem id="menu_vend_invoice_jour_staging"
-                  name="Vend Invoice Jour Staging"
-                  parent="swa_acc.menu_staging_data"
-                  action="action_vend_invoice_jour_staging"
-                  sequence="60"/>
     </data>
 </odoo>
