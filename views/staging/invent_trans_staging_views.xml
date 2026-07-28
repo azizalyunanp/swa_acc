@@ -100,6 +100,7 @@
             <field name="res_model">swa.invent.trans.staging</field>
             <field name="view_mode">list,form</field>
             <field name="search_view_id" ref="view_invent_trans_staging_search"/>
+            <field name="context">{"search_default_not_executed": 1}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">No Invent Trans staging data</p>
                 <p>Staging data for Inventory Transactions imported from AX 2012.</p>

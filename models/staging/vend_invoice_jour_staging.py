@@ -112,15 +112,14 @@ class SwaVendInvoiceJourStaging(models.Model):
                     try:
                         picking.sudo().with_context(**ctx).action_confirm()
                         picking.sudo().with_context(**ctx).action_assign()
-                        picking.sudo().with_context(skip_backorder=True, **ctx).button_validate()
+                        self._set_lots_on_picking(picking, rec.line_ids)
+                        picking.sudo().with_context(**ctx)._action_done()
                     except Exception as pick_err:
                         raise ValueError(f"Picking {picking.name} validation failed: {pick_err}")
                     picking.write({
                         'swa_receipt_reference': rec.invoice_id,
                         'company_id': company.id if company else picking.company_id.id,
                     })
-                    if picking.state != 'done':
-                        raise ValueError(f"Picking {picking.name} state is still '{picking.state}' after validation")
 
                 # Create vendor bill
                 bill = self.env['account.move'].sudo().with_context(**ctx).create({
@@ -140,6 +139,7 @@ class SwaVendInvoiceJourStaging(models.Model):
                 lines_created = 0
                 po_lines_by_product = {l.product_id.id: l for l in po.order_line} if po else {}
                 for line, product, account in line_data:
+                    po_line = po_lines_by_product.get(product.id) if po else False
                     aml = self.env['account.move.line'].sudo().create({
                         'move_id': bill.id,
                         'product_id': product.id,
@@ -147,10 +147,9 @@ class SwaVendInvoiceJourStaging(models.Model):
                         'quantity': line.qty or 0,
                         'price_unit': line.purch_price or 0,
                         'name': product.name,
+                        'purchase_line_id': po_line.id if po_line else False,
+                        'tax_ids': [(6, 0, po_line.taxes_id.ids)] if po_line and po_line.taxes_id else [(5,)],
                     })
-                    # Link bill line to purchase order line by product
-                    if po and product.id in po_lines_by_product:
-                        aml.sudo().write({'purchase_line_id': po_lines_by_product[product.id].id})
                     line.write({
                         'is_executed': 'Yes',
                         'log': f'Success: Bill line created (Bill: {bill.name})',
@@ -158,6 +157,11 @@ class SwaVendInvoiceJourStaging(models.Model):
                     lines_created += 1
 
                 # Post the bill
+                bill.sudo().with_context(**ctx)._compute_amount()
+                tolerance = 1.0
+                if abs(bill.amount_total - rec.invoice_amount) > tolerance:
+                    rec.write({'log': f"Error: Amount mismatch. Staging: {rec.invoice_amount}, Bill: {bill.amount_total}. Bill not posted."})
+                    continue
                 bill.sudo().with_context(**ctx).action_post()
 
                 # Link bill to picking
@@ -172,3 +176,46 @@ class SwaVendInvoiceJourStaging(models.Model):
                 rec.write({'log': f"Error: {str(e)}"})
                 _logger.error(f"VendInvoiceJour {rec.id} action_receive_and_bill error: {str(e)}")
 
+    def _set_lots_on_picking(self, picking, trans_lines):
+        lot_by_item = {}
+        for line in trans_lines:
+            if line.item_id and line.lot:
+                lot_by_item[line.item_id] = line.lot
+        if not lot_by_item:
+            return
+        for move in picking.move_ids:
+            if move.product_id.tracking in ('none', False):
+                continue
+            staging_lot = lot_by_item.get(move.product_id.default_code)
+            if not staging_lot:
+                continue
+            for move_line in move.move_line_ids:
+                if move_line.lot_id:
+                    continue
+                lot = self.env['stock.lot'].sudo().search([
+                    ('product_id', '=', move.product_id.id),
+                    ('name', '=', staging_lot),
+                ], limit=1)
+                if not lot:
+                    lot = self.env['stock.lot'].sudo().create({
+                        'product_id': move.product_id.id,
+                        'name': staging_lot,
+                        'company_id': move.company_id.id,
+                    })
+                move_line.sudo().write({'lot_id': lot.id})
+
+    def _get_or_create_warehouse(self, location_id):
+        if not location_id:
+            return False
+        wh = self.env['stock.warehouse'].sudo().search([
+            ('code', '=ilike', location_id.strip())
+        ], limit=1)
+        if not wh:
+            company = self.env.company
+            wh = self.env['stock.warehouse'].sudo().create({
+                'name': location_id,
+                'code': location_id,
+                'company_id': company.id,
+            })
+            _logger.info(f"Created warehouse: {location_id} (ID: {wh.id})")
+        return wh

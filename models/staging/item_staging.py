@@ -12,6 +12,7 @@ class SwaItemStaging(models.Model):
     item_name = fields.Char(string='Item Name')
     unit_id = fields.Char(string='Unit ID')
     type_item = fields.Char(string='Type Item')
+    tracking = fields.Char(string='Tracking')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')
@@ -34,17 +35,29 @@ class SwaItemStaging(models.Model):
 
                     uom_id = self._get_or_create_uom(rec.unit_id) if rec.unit_id else False
 
-                    categ = self.env.ref('product.product_category_all', raise_if_not_found=False) or False
-                    if rec.type_item:
-                        found = self.env['product.category'].sudo().search([
-                            ('swa_short_code', '=', rec.type_item)
-                        ], limit=1)
-                        if found:
-                            categ = found
-                        else:
-                            _logger.warning(f"ItemStaging {rec.id}: No product category found for swa_short_code '{rec.type_item}', using default")
+                    categ = False
+                    item_prefix = rec.item_id[:2] if rec.item_id and len(rec.item_id) >= 2 else ''
+                    if not item_prefix:
+                        raise ValueError(f"item_id '{rec.item_id}' is too short to determine product category")
+                    found = self.env['product.category'].sudo().search([
+                        ('swa_short_code', '=', item_prefix)
+                    ], limit=1)
+                    if found:
+                        categ = found
+                    else:
+                        raise ValueError(f"No product category found for item_id prefix '{item_prefix}'")
 
-                    product_type = 'service' if rec.item_id and rec.item_id.startswith('80') else 'consu'
+                    if rec.item_id and rec.item_id.startswith('80'):
+                        product_type = 'service'
+                        odoo_tracking = 'none'
+                    elif not rec.tracking:
+                        product_type = 'consu'
+                        odoo_tracking = 'none'
+                    elif rec.tracking in ('SRIL_B+SN', 'B+SN'):
+                        product_type = 'consu'
+                        odoo_tracking = 'lot'
+                    else:
+                        raise ValueError(f"Unknown tracking value '{rec.tracking}'")
 
                     product = self.env['product.product'].sudo().create({
                         'default_code': rec.item_id,
@@ -53,6 +66,8 @@ class SwaItemStaging(models.Model):
                         'uom_po_id': uom_id,
                         'categ_id': categ.id if categ else False,
                         'type': product_type,
+                        'tracking': odoo_tracking,
+                        'lot_valuated': odoo_tracking != 'none',
                     })
                     rec.write({
                         'is_executed': 'Yes',

@@ -9,7 +9,7 @@ class SwaCustInvoiceTransStaging(models.Model):
     invoice_date = fields.Date(string='Invoice Date')
     tax_group = fields.Char(string='Tax Group')
     tax_item_group = fields.Char(string='Tax Item Group')
-    purch_price = fields.Float(string='Purchase Price')
+    purch_price = fields.Float(string='Sales Price')
     line_amount = fields.Float(string='Line Amount')
     line_amount_mst = fields.Float(string='Line Amount (MST)')
     tax_amount = fields.Float(string='Tax Amount')
