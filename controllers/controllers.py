@@ -132,6 +132,9 @@ class StagingDataController(http.Controller):
             'VendInvoiceTrans': self._process_vend_invoice_trans,
             'PurchTable': self._process_purch_table,
             'PurchLine': self._process_purch_line,
+            'ProdTable': self._process_prod_table,
+            'ProdJournalProd': self._process_prod_journal_prod,
+            'ProdJournalBom': self._process_prod_journal_bom,
         }
         return handlers.get(type_trans)
 
@@ -279,3 +282,41 @@ class StagingDataController(http.Controller):
         ])
         if existing == 0:
             request.env['swa.purch.line.staging'].sudo().create(vals)
+
+    def _process_prod_table(self, data):
+        vals = self._filter_vals('swa.prod.table.staging', {self._to_snake_case(k): v for k, v in data.items()})
+        existing = request.env['swa.prod.table.staging'].sudo().search_count([
+            ('prod_id', '=', data.get('ProdId'))
+        ])
+        if existing == 0:
+            request.env['swa.prod.table.staging'].sudo().create(vals)
+
+    def _process_prod_journal_prod(self, data):
+        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        table = request.env['swa.prod.table.staging'].sudo().search([
+            ('prod_id', '=', data.get('ProdId'))
+        ], limit=1)
+        if table:
+            vals['table_id'] = table.id
+        vals = self._filter_vals('swa.prod.journal.prod.staging', vals)
+        existing = request.env['swa.prod.journal.prod.staging'].sudo().search_count([
+            ('prod_id', '=', data.get('ProdId')),
+            ('item_id', '=', data.get('ItemId')),
+        ])
+        if existing == 0:
+            request.env['swa.prod.journal.prod.staging'].sudo().create(vals)
+
+    def _process_prod_journal_bom(self, data):
+        vals = {self._to_snake_case(k): v for k, v in data.items()}
+        table = request.env['swa.prod.table.staging'].sudo().search([
+            ('prod_id', '=', data.get('ProdId'))
+        ], limit=1)
+        if table:
+            vals['table_id'] = table.id
+        vals = self._filter_vals('swa.prod.journal.bom.staging', vals)
+        existing = request.env['swa.prod.journal.bom.staging'].sudo().search_count([
+            ('prod_id', '=', data.get('ProdId')),
+            ('item_id', '=', data.get('ItemId')),
+        ])
+        if existing == 0:
+            request.env['swa.prod.journal.bom.staging'].sudo().create(vals)

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+# ── Patch: Fix Odoo 18 _check_removed_columns empty NOT IN () bug ───
+from . import patch_check_removed_columns
+
 # ── Core / general models ────────────────────────────────────────
 from . import models
 from . import account_move

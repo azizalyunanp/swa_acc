@@ -51,6 +51,7 @@ SWA Accounting
         "views/staging/staging_setup_views.xml",
         "views/staging/staging_menu_views.xml",
         "views/staging/transaction_menu_views.xml",
+        "views/staging/prod_table_staging_views.xml",
 
         "views/foh/setup/az_mapping_account_foh_views.xml",
         "views/foh/setup/az_mapping_item_foh_views.xml",

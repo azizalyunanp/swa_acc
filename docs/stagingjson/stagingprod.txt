@@ -1,0 +1,7 @@
+ProdTable :
+{"OrigRecId":"5638415168","ProdId":"BO-2508-000762","ItemId":"1410020032A16531","ItemName":"","NomorWo":"FIN-2025-1840LL-PRINT-AGT 644T","Qty":"3000.00000000","Pool":"FN-PRINT","InventRefId":"SO-2508-002762","Site":"SWA-1","Warehouse":"W1-FIN 2"}
+ProdJournalProd:
+{"OrigRecId":"5642546473","ProdId":"BO-2508-000762","ItemId":"1410020032A16531","Qty":"2400.00000000","Site":"SWA-1","Warehouse":"W1-FIN 2"}
+
+ProdJournalBom:
+{"OrigRecId":"5648483541","ProdId":"BO-2508-000762","ItemId":"191002006401","Unit":"yd","Qty":"2912.00000000","Site":"SWA-1","Warehouse":"W1-FNS"}

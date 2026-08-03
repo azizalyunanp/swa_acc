@@ -57,3 +57,6 @@ access_swa_purch_line_staging_manager,swa.purch.line.staging.manager,model_swa_p
 
 access_swa_staging_setup_user,swa.staging.setup.user,model_swa_staging_setup,account.group_account_user,1,0,0,0
 access_swa_staging_setup_manager,swa.staging.setup.manager,model_swa_staging_setup,account.group_account_manager,1,1,1,1
+
+access_swa_prod_table_staging_user,swa.prod.table.staging.user,model_swa_prod_table_staging,account.group_account_user,1,0,0,0
+access_swa_prod_table_staging_manager,swa.prod.table.staging.manager,model_swa_prod_table_staging,account.group_account_manager,1,1,1,1

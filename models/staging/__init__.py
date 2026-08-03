@@ -10,3 +10,6 @@ from . import vend_invoice_trans_staging
 from . import purch_table_staging
 from . import purch_line_staging
 from . import staging_setup
+from . import prod_table_staging
+from . import prod_journal_prod_staging
+from . import prod_journal_bom_staging

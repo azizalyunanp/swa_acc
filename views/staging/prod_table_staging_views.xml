@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_az_prod_staging_list" model="ir.ui.view">
+            <field name="name">swa.prod.table.staging.list</field>
+            <field name="model">swa.prod.table.staging</field>
+            <field name="arch" type="xml">
+                <list string="Prod Table Staging" create="false" edit="false" delete="false">
+                    <field name="prod_id"/>
+                    <field name="item_id"/>
+                    <field name="qty"/>
+                    <field name="site"/>
+                    <field name="warehouse"/>
+                    <field name="log" optional="show"/>
+                    <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_prod_table_staging_form" model="ir.ui.view">
+            <field name="name">swa.prod.table.staging.form</field>
+            <field name="model">swa.prod.table.staging</field>
+            <field name="arch" type="xml">
+                <form string="Prod Table Staging">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="prod_id"/>
+                                <field name="item_id"/>
+                                <field name="nomor_wo"/>
+                                <field name="qty"/>
+                            </group>
+                            <group>
+                                <field name="prod_pool"/>
+                                <field name="invent_ref_id"/>
+                                <field name="site"/>
+                                <field name="warehouse"/>
+                                <field name="is_executed"/>
+                            </group>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Prod Journal Prod (FG)">
+                                <field name="line_ids_prod" readonly="1">
+                                    <list>
+                                        <field name="item_id"/>
+                                        <field name="qty" sum="Total Qty"/>
+                                        <field name="site"/>
+                                        <field name="warehouse"/>
+                                        <field name="log" optional="show"/>
+                                        <field name="is_executed"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Prod Journal BOM (Components)">
+                                <field name="line_ids_bom" readonly="1">
+                                    <list>
+                                        <field name="item_id"/>
+                                        <field name="unit"/>
+                                        <field name="qty" sum="Total Qty"/>
+                                        <field name="site"/>
+                                        <field name="warehouse"/>
+                                        <field name="log" optional="show"/>
+                                        <field name="is_executed"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_prod_table_staging_search" model="ir.ui.view">
+            <field name="name">swa.prod.table.staging.search</field>
+            <field name="model">swa.prod.table.staging</field>
+            <field name="arch" type="xml">
+                <search string="Prod Table Staging">
+                    <field name="prod_id"/>
+                    <field name="item_id"/>
+                    <separator/>
+                    <filter string="Not Executed" name="not_executed" domain="[('is_executed', '=', 'No')]"/>
+                    <filter string="Executed" name="executed" domain="[('is_executed', '=', 'Yes')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_prod_table_staging" model="ir.actions.act_window">
+            <field name="name">Prod Table Staging</field>
+            <field name="res_model">swa.prod.table.staging</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_prod_table_staging_search"/>
+            <field name="context">{'search_default_not_executed': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No Prod Table staging data</p>
+                <p>Staging data for Production Orders imported from AX 2012.</p>
+            </field>
+        </record>
+
+        <menuitem id="swa_acc.menu_production"
+                  name="Production"
+                  parent="swa_acc.menu_synchronize_root"
+                  sequence="30"
+                  groups="account.group_account_user"/>
+
+        <menuitem id="menu_prod_table_staging"
+                  name="Prod Table Staging"
+                  parent="swa_acc.menu_production"
+                  action="action_prod_table_staging"
+                  sequence="10"/>
+    </data>
+</odoo>

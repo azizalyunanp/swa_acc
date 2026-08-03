@@ -211,6 +211,50 @@ class SwaApiReceivedData(models.Model):
                             else:
                                 _logger.info(f"Record {record.id}: PurchLine already exists, skipping")
 
+                        elif record.type_trans == 'ProdTable':
+                            existing = self.env['swa.prod.table.staging'].sudo().search_count([
+                                ('prod_id', '=', item.get('ProdId'))
+                            ])
+                            if existing == 0:
+                                self.env['swa.prod.table.staging'].sudo().create(self._filter_vals('swa.prod.table.staging', vals))
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: ProdTable {item.get('ProdId')} already exists, skipping")
+
+                        elif record.type_trans == 'ProdJournalProd':
+                            table = self.env['swa.prod.table.staging'].sudo().search([
+                                ('prod_id', '=', item.get('ProdId'))
+                            ], limit=1)
+                            if table:
+                                vals['table_id'] = table.id
+                            vals = self._filter_vals('swa.prod.journal.prod.staging', vals)
+                            existing = self.env['swa.prod.journal.prod.staging'].sudo().search_count([
+                                ('prod_id', '=', item.get('ProdId')),
+                                ('item_id', '=', item.get('ItemId')),
+                            ])
+                            if existing == 0:
+                                self.env['swa.prod.journal.prod.staging'].sudo().create(vals)
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: ProdJournalProd already exists, skipping")
+
+                        elif record.type_trans == 'ProdJournalBom':
+                            table = self.env['swa.prod.table.staging'].sudo().search([
+                                ('prod_id', '=', item.get('ProdId'))
+                            ], limit=1)
+                            if table:
+                                vals['table_id'] = table.id
+                            vals = self._filter_vals('swa.prod.journal.bom.staging', vals)
+                            existing = self.env['swa.prod.journal.bom.staging'].sudo().search_count([
+                                ('prod_id', '=', item.get('ProdId')),
+                                ('item_id', '=', item.get('ItemId')),
+                            ])
+                            if existing == 0:
+                                self.env['swa.prod.journal.bom.staging'].sudo().create(vals)
+                                total_created += 1
+                            else:
+                                _logger.info(f"Record {record.id}: ProdJournalBom already exists, skipping")
+
                         else:
                             _logger.warning(f"Record {record.id}: Unknown type_trans '{record.type_trans}', skipping")
 
