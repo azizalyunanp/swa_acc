@@ -134,7 +134,9 @@ class StagingDataController(http.Controller):
             'PurchLine': self._process_purch_line,
             'ProdTable': self._process_prod_table,
             'ProdJournalProd': self._process_prod_journal_prod,
+            'ProdJournalPROD': self._process_prod_journal_prod,
             'ProdJournalBom': self._process_prod_journal_bom,
+            'ProdJournalBOM': self._process_prod_journal_bom,
         }
         return handlers.get(type_trans)
 

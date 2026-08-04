@@ -22,6 +22,10 @@
             <field name="model">swa.prod.table.staging</field>
             <field name="arch" type="xml">
                 <form string="Prod Table Staging">
+                    <header>
+                        <button name="action_create_mo" string="Create MO" type="object"
+                                class="oe_highlight" invisible="is_executed == 'Yes'"/>
+                    </header>
                     <sheet>
                         <group>
                             <group>
@@ -46,7 +50,9 @@
                                 <field name="line_ids_prod" readonly="1">
                                     <list>
                                         <field name="item_id"/>
+                                        <field name="pmf_product_type"/>
                                         <field name="qty" sum="Total Qty"/>
+                                        <field name="lot" optional="show"/>
                                         <field name="site"/>
                                         <field name="warehouse"/>
                                         <field name="log" optional="show"/>
@@ -60,6 +66,7 @@
                                         <field name="item_id"/>
                                         <field name="unit"/>
                                         <field name="qty" sum="Total Qty"/>
+                                        <field name="lot" optional="show"/>
                                         <field name="site"/>
                                         <field name="warehouse"/>
                                         <field name="log" optional="show"/>
@@ -97,6 +104,14 @@
                 <p class="o_view_nocontent_smiling_face">No Prod Table staging data</p>
                 <p>Staging data for Production Orders imported from AX 2012.</p>
             </field>
+        </record>
+
+        <record id="action_server_create_mo" model="ir.actions.server">
+            <field name="name">Create MO</field>
+            <field name="model_id" ref="model_swa_prod_table_staging"/>
+            <field name="binding_model_id" ref="model_swa_prod_table_staging"/>
+            <field name="state">code</field>
+            <field name="code">records.action_create_mo()</field>
         </record>
 
         <menuitem id="swa_acc.menu_production"

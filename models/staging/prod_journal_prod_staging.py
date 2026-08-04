@@ -9,6 +9,8 @@ class ProdJournalProdStaging(models.Model):
     prod_id = fields.Char(string='Production ID')
     item_id = fields.Char(string='Item ID')
     qty = fields.Float(string='Qty')
+    pmf_product_type = fields.Char(string='Pmf Product Type')
+    lot = fields.Char(string='Lot')
     site = fields.Char(string='Site')
     warehouse = fields.Char(string='Warehouse')
     is_executed = fields.Selection([

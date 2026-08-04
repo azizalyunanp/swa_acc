@@ -60,3 +60,7 @@ access_swa_staging_setup_manager,swa.staging.setup.manager,model_swa_staging_set
 
 access_swa_prod_table_staging_user,swa.prod.table.staging.user,model_swa_prod_table_staging,account.group_account_user,1,0,0,0
 access_swa_prod_table_staging_manager,swa.prod.table.staging.manager,model_swa_prod_table_staging,account.group_account_manager,1,1,1,1
+access_swa_prod_journal_prod_staging_user,swa.prod.journal.prod.staging.user,model_swa_prod_journal_prod_staging,account.group_account_user,1,0,0,0
+access_swa_prod_journal_prod_staging_manager,swa.prod.journal.prod.staging.manager,model_swa_prod_journal_prod_staging,account.group_account_manager,1,1,1,1
+access_swa_prod_journal_bom_staging_user,swa.prod.journal.bom.staging.user,model_swa_prod_journal_bom_staging,account.group_account_user,1,0,0,0
+access_swa_prod_journal_bom_staging_manager,swa.prod.journal.bom.staging.manager,model_swa_prod_journal_bom_staging,account.group_account_manager,1,1,1,1

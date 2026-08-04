@@ -10,6 +10,7 @@ class ProdJournalBomStaging(models.Model):
     item_id = fields.Char(string='Item ID')
     unit = fields.Char(string='Unit')
     qty = fields.Float(string='Qty')
+    lot = fields.Char(string='Lot')
     site = fields.Char(string='Site')
     warehouse = fields.Char(string='Warehouse')
     is_executed = fields.Selection([

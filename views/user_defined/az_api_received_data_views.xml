@@ -8,7 +8,7 @@
             <field name="name">swa.api.received.data.list</field>
             <field name="model">swa.api.received.data</field>
             <field name="arch" type="xml">
-                <list string="API Received Data" create="false" edit="false" delete="false">
+                <list string="API Received Data" create="false" edit="false">
                     <field name="type_trans"/>
                     <field name="session"/>
                     <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>

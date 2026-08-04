@@ -18,6 +18,7 @@ class SwaApiReceivedData(models.Model):
     data_trans = fields.Text(string='Data Trans')
     type_trans = fields.Char(string='Type Trans', required=True)
     session = fields.Char(string='Session', required=True)
+    log = fields.Text(string='Log')
 
     _sql_constraints = [('unique_session_type', 'unique(session, type_trans)', 'Combination of session and type_trans must be unique')]
 
@@ -42,6 +43,8 @@ class SwaApiReceivedData(models.Model):
         total_created = 0
 
         for record in records:
+            logs = []
+            has_error = False
             try:
                 with self.env.cr.savepoint():
                     json_data = record.data_trans
@@ -55,6 +58,8 @@ class SwaApiReceivedData(models.Model):
 
                     for item in json_data:
                         if not isinstance(item, dict):
+                            has_error = True
+                            logs.append(f"[WARN] item is not a dict, skipping: {type(item).__name__}")
                             _logger.warning(f"Record {record.id}: item is not a dict, skipping: {type(item).__name__}")
                             continue
 
@@ -74,6 +79,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.item.staging'].sudo().create(self._filter_vals('swa.item.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"Item {item.get('ItemId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: Item {item.get('ItemId')} already exists, skipping")
 
                         elif record.type_trans == 'CustVend':
@@ -84,6 +90,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.cust.vend.staging'].sudo().create(self._filter_vals('swa.cust.vend.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"CustVend {item.get('CustVendId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: CustVend {item.get('CustVendId')} already exists, skipping")
 
                         elif record.type_trans in ('InventTrans', 'ALL'):
@@ -94,6 +101,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.invent.trans.staging'].sudo().create(self._filter_vals('swa.invent.trans.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"InventTrans {item.get('OrigRecId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: InventTrans {item.get('OrigRecId')} already exists, skipping")
 
                         elif record.type_trans == 'CustInvoiceJour':
@@ -105,6 +113,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.cust.invoice.jour.staging'].sudo().create(self._filter_vals('swa.cust.invoice.jour.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"CustInvoiceJour {item.get('InvoiceId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: CustInvoiceJour {item.get('InvoiceId')} already exists, skipping")
 
                         elif record.type_trans == 'CustInvoiceTrans':
@@ -125,6 +134,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.cust.invoice.trans.staging'].sudo().create(vals)
                                 total_created += 1
                             else:
+                                logs.append(f"CustInvoiceTrans already exists, skipping")
                                 _logger.info(f"Record {record.id}: CustInvoiceTrans already exists, skipping")
 
                         elif record.type_trans == 'SalesTable':
@@ -135,6 +145,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.sales.table.staging'].sudo().create(self._filter_vals('swa.sales.table.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"SalesTable {item.get('SalesId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: SalesTable {item.get('SalesId')} already exists, skipping")
 
                         elif record.type_trans == 'SalesLine':
@@ -152,6 +163,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.sales.line.staging'].sudo().create(vals)
                                 total_created += 1
                             else:
+                                logs.append(f"SalesLine already exists, skipping")
                                 _logger.info(f"Record {record.id}: SalesLine already exists, skipping")
 
                         elif record.type_trans == 'VendInvoiceJour':
@@ -163,6 +175,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.vend.invoice.jour.staging'].sudo().create(self._filter_vals('swa.vend.invoice.jour.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"VendInvoiceJour {item.get('InvoiceId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: VendInvoiceJour {item.get('InvoiceId')} already exists, skipping")
 
                         elif record.type_trans == 'VendInvoiceTrans':
@@ -182,6 +195,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.vend.invoice.trans.staging'].sudo().create(vals)
                                 total_created += 1
                             else:
+                                logs.append(f"VendInvoiceTrans already exists, skipping")
                                 _logger.info(f"Record {record.id}: VendInvoiceTrans already exists, skipping")
 
                         elif record.type_trans == 'PurchTable':
@@ -192,6 +206,7 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.purch.table.staging'].sudo().create(self._filter_vals('swa.purch.table.staging', vals))
                                 total_created += 1
                             else:
+                                logs.append(f"PurchTable {item.get('PurchId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: PurchTable {item.get('PurchId')} already exists, skipping")
 
                         elif record.type_trans == 'PurchLine':
@@ -209,60 +224,94 @@ class SwaApiReceivedData(models.Model):
                                 self.env['swa.purch.line.staging'].sudo().create(vals)
                                 total_created += 1
                             else:
+                                logs.append(f"PurchLine already exists, skipping")
                                 _logger.info(f"Record {record.id}: PurchLine already exists, skipping")
 
                         elif record.type_trans == 'ProdTable':
+                            logs.append(f"ProdTable raw item={item}")
+                            _logger.info(f"Record {record.id}: ProdTable raw item={item}")
+                            vals_filtered = self._filter_vals('swa.prod.table.staging', vals)
+                            logs.append(f"ProdTable vals={vals_filtered}")
+                            _logger.info(f"Record {record.id}: ProdTable vals={vals_filtered}")
                             existing = self.env['swa.prod.table.staging'].sudo().search_count([
                                 ('prod_id', '=', item.get('ProdId'))
                             ])
                             if existing == 0:
-                                self.env['swa.prod.table.staging'].sudo().create(self._filter_vals('swa.prod.table.staging', vals))
+                                created = self.env['swa.prod.table.staging'].sudo().create(vals_filtered)
                                 total_created += 1
+                                logs.append(f"Created ProdTable ID={created.id}")
+                                _logger.info(f"Record {record.id}: Created ProdTable ID={created.id}")
                             else:
+                                logs.append(f"ProdTable {item.get('ProdId')} already exists, skipping")
                                 _logger.info(f"Record {record.id}: ProdTable {item.get('ProdId')} already exists, skipping")
 
-                        elif record.type_trans == 'ProdJournalProd':
+                        elif record.type_trans in ('ProdJournalProd', 'ProdJournalPROD'):
+                            logs.append(f"ProdJournalProd raw item={item}, vals={vals}")
+                            _logger.info(f"Record {record.id}: ProdJournalProd raw item={item}, vals={vals}")
                             table = self.env['swa.prod.table.staging'].sudo().search([
                                 ('prod_id', '=', item.get('ProdId'))
                             ], limit=1)
                             if table:
                                 vals['table_id'] = table.id
                             vals = self._filter_vals('swa.prod.journal.prod.staging', vals)
+                            _logger.info(f"ProdJournalProd filtered vals: {vals}")
                             existing = self.env['swa.prod.journal.prod.staging'].sudo().search_count([
                                 ('prod_id', '=', item.get('ProdId')),
                                 ('item_id', '=', item.get('ItemId')),
                             ])
+                            logs.append(f"ProdJournalProd existing={existing}, filtered_vals={vals}")
+                            _logger.info(f"Record {record.id}: ProdJournalProd existing={existing}, filtered_vals={vals}")
                             if existing == 0:
-                                self.env['swa.prod.journal.prod.staging'].sudo().create(vals)
+                                created = self.env['swa.prod.journal.prod.staging'].sudo().create(vals)
                                 total_created += 1
+                                logs.append(f"Created ProdJournalProd ID={created.id}")
+                                _logger.info(f"Record {record.id}: Created ProdJournalProd ID={created.id}")
                             else:
+                                logs.append(f"ProdJournalProd already exists, skipping")
                                 _logger.info(f"Record {record.id}: ProdJournalProd already exists, skipping")
 
-                        elif record.type_trans == 'ProdJournalBom':
+                        elif record.type_trans in ('ProdJournalBom', 'ProdJournalBOM'):
+                            logs.append(f"ProdJournalBom raw item={item}, vals={vals}")
+                            _logger.info(f"Record {record.id}: ProdJournalBom raw item={item}, vals={vals}")
                             table = self.env['swa.prod.table.staging'].sudo().search([
                                 ('prod_id', '=', item.get('ProdId'))
                             ], limit=1)
                             if table:
                                 vals['table_id'] = table.id
                             vals = self._filter_vals('swa.prod.journal.bom.staging', vals)
+                            _logger.info(f"ProdJournalBom filtered vals: {vals}")
                             existing = self.env['swa.prod.journal.bom.staging'].sudo().search_count([
                                 ('prod_id', '=', item.get('ProdId')),
                                 ('item_id', '=', item.get('ItemId')),
                             ])
+                            logs.append(f"ProdJournalBom existing={existing}, filtered_vals={vals}")
+                            _logger.info(f"Record {record.id}: ProdJournalBom existing={existing}, filtered_vals={vals}")
                             if existing == 0:
-                                self.env['swa.prod.journal.bom.staging'].sudo().create(vals)
+                                created = self.env['swa.prod.journal.bom.staging'].sudo().create(vals)
                                 total_created += 1
+                                logs.append(f"Created ProdJournalBom ID={created.id}")
+                                _logger.info(f"Record {record.id}: Created ProdJournalBom ID={created.id}")
                             else:
+                                logs.append(f"ProdJournalBom already exists, skipping")
                                 _logger.info(f"Record {record.id}: ProdJournalBom already exists, skipping")
 
                         else:
+                            has_error = True
+                            logs.append(f"[WARN] Unknown type_trans '{record.type_trans}', skipping")
                             _logger.warning(f"Record {record.id}: Unknown type_trans '{record.type_trans}', skipping")
 
-                    record.sudo().write({'is_executed': 'Yes'})
+                    record.sudo().write({
+                        'is_executed': 'No' if has_error else 'Yes',
+                        'log': '\n'.join(logs) if logs else False,
+                    })
 
             except Exception as e:
+                logs.append(f"Error: {str(e)}")
                 _logger.error(f"Cron error processing record {record.id}: {str(e)}")
-                _logger.error(f"Exception type: {type(e).__name__}")
+                record.sudo().write({
+                    'is_executed': 'No',
+                    'log': '\n'.join(logs) if logs else f"Error: {str(e)}",
+                })
 
         _logger.info(f"Cron: finished. Total staging records created: {total_created}")
         return True
@@ -289,6 +338,14 @@ class SwaApiReceivedData(models.Model):
         purchases = self.env['swa.purch.table.staging'].sudo().search([('is_executed', '=', 'No')])
         purchases.action_create_purchase_order()
         _logger.info(f"Auto-migrate: processed {len(purchases)} purchase order(s)")
+
+        # 5. Log production staging records
+        prods = self.env['swa.prod.table.staging'].sudo().search([('is_executed', '=', 'No')])
+        _logger.info(f"Auto-migrate: found {len(prods)} production(s) — pending MO creation")
+        prod_journals = self.env['swa.prod.journal.prod.staging'].sudo().search([('is_executed', '=', 'No')])
+        _logger.info(f"Auto-migrate: found {len(prod_journals)} prod journal(s) — pending")
+        prod_boms = self.env['swa.prod.journal.bom.staging'].sudo().search([('is_executed', '=', 'No')])
+        _logger.info(f"Auto-migrate: found {len(prod_boms)} BOM journal(s) — pending")
 
         _logger.info("Auto-migrate: finished")
         return True
