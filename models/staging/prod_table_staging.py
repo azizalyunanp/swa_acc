@@ -187,9 +187,11 @@ class ProdTableStaging(models.Model):
                     lot = self.env['stock.lot'].sudo().search([
                         ('product_id', '=', bom_product.id),
                         ('name', '=', lot_name),
-                        ('company_id', '=', company.id if company else False),
                     ], limit=1)
-                    if not lot:
+                    if lot:
+                        # Reuse existing lot, set company from staging setup
+                        lot.sudo().write({'company_id': company.id if company else lot.company_id.id})
+                    else:
                         lot = self.env['stock.lot'].sudo().create({
                             'product_id': bom_product.id,
                             'name': lot_name,
@@ -212,9 +214,10 @@ class ProdTableStaging(models.Model):
                         prod_lot = self.env['stock.lot'].sudo().search([
                             ('product_id', '=', product.id),
                             ('name', '=', prod_line.lot),
-                            ('company_id', '=', company.id if company else False),
                         ], limit=1)
-                        if not prod_lot:
+                        if prod_lot:
+                            prod_lot.sudo().write({'company_id': company.id if company else prod_lot.company_id.id})
+                        else:
                             prod_lot = self.env['stock.lot'].sudo().create({
                                 'product_id': product.id,
                                 'name': prod_line.lot,
