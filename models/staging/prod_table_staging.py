@@ -83,6 +83,8 @@ class ProdTableStaging(models.Model):
                     'name': rec.prod_id,
                     'product_id': product.id,
                     'product_qty': total_qty,
+                    'qty_producing':total_qty,
+                    'product_qty':total_qty,
                     'product_uom_id': product.uom_id.id,
                     'bom_id': False,
                     'company_id': company.id if company else False,
@@ -97,46 +99,111 @@ class ProdTableStaging(models.Model):
 
                 mo = self.env['mrp.production'].sudo().with_context(**ctx).create(mo_vals)
 
-                # Confirm first (creates FG move + sets locations)
+                # # Confirm first (creates FG move + sets locations)
                 mo.sudo().with_context(**ctx).action_confirm()
 
-                # Add raw materials from ProdJournalBom (AFTER confirm)
+                # Add raw materials from ProdJournalBom (group by item_id + lot, sum qty)
+                bom_grouped = {}
                 for bom_line in rec.line_ids_bom:
+                    if bom_line.item_id:
+                        key = (bom_line.item_id, bom_line.lot or '')
+                        if key not in bom_grouped:
+                            bom_grouped[key] = 0
+                        bom_grouped[key] += (bom_line.qty or 0)
+                    bom_line.write({
+                        'is_executed': 'Yes',
+                        'log': f"Success: MO component (MO: {mo.name})"
+                    })
+
+                # Compute price_unit per (item_id, lot_name) once
+                price_map = {}
+                mo_date = mo.date_start or fields.Datetime.now()
+                for (item_id, lot_name), total_qty in bom_grouped.items():
                     bom_product = self.env['product.product'].sudo().search([
-                        ('default_code', '=', bom_line.item_id)
-                    ], limit=1) if bom_line.item_id else False
+                        ('default_code', '=', item_id)
+                    ], limit=1) if item_id else False
                     if not bom_product:
-                        bom_line.write({'log': f"Error: BOM product '{bom_line.item_id}' not found."})
                         continue
+                    # Base price from product/lot standard_price
+                    price = bom_product.standard_price or 0.0
+                    if bom_product.tracking in ('lot', 'serial') and lot_name:
+                        lot = self.env['stock.lot'].sudo().search([
+                            ('product_id', '=', bom_product.id),
+                            ('name', '=', lot_name),
+                            ('company_id', '=', company.id if company else False),
+                        ], limit=1)
+                        if lot and lot.standard_price:
+                            price = lot.standard_price
+                        elif bom_product.lot_valuated and lot and price:
+                            lot.sudo().write({'standard_price': price})
+                    # SVL lookup by date ONLY if price is still 0
+                    if not price:
+                        svl = self.env['stock.valuation.layer'].sudo().search([
+                            ('product_id', '=', bom_product.id),
+                            ('create_date', '<=', mo_date),
+                            ('quantity', '>', 0),
+                        ], limit=1, order='create_date desc, id desc')
+                        if svl and svl.unit_cost:
+                            price = svl.unit_cost
+                    price_map[(item_id, lot_name)] = price
+
+                # Create raw material stock.moves
+                for (item_id, lot_name), total_qty in bom_grouped.items():
+                    bom_product = self.env['product.product'].sudo().search([
+                        ('default_code', '=', item_id)
+                    ], limit=1) if item_id else False
+                    if not bom_product:
+                        continue
+                    price_unit = price_map.get((item_id, lot_name), bom_product.standard_price or 0.0)
                     try:
-                        self.env['stock.move'].sudo().with_context(**ctx).create({
+                        move = self.env['stock.move'].sudo().with_context(**ctx).create({
                             'name': bom_product.name,
                             'product_id': bom_product.id,
-                            'product_uom_qty': bom_line.qty or 0,
+                            'product_uom_qty': total_qty,
+                            'quantity': total_qty,
+                            'picked': True,
+                            'price_unit': price_unit,
                             'product_uom': bom_product.uom_id.id,
-                            'production_id': mo.id,
                             'raw_material_production_id': mo.id,
                             'location_id': mo.location_src_id.id,
                             'location_dest_id': mo.location_dest_id.id,
+                            'picking_type_id': mo.picking_type_id.id,
                             'company_id': company.id if company else False,
                             'bom_line_id': False,
                         })
-                        bom_line.write({
-                            'is_executed': 'Yes',
-                            'log': f"Success: MO component created (MO: {mo.name})"
-                        })
+                        move.sudo()._action_confirm()
                     except Exception as move_err:
-                        bom_line.write({'log': f"Error creating stock.move: {str(move_err)}"})
-                        _logger.error(f"ProdTableStaging {rec.id}: Failed to create stock.move for {bom_line.item_id}: {move_err}")
+                        _logger.error(f"ProdTableStaging {rec.id}: Failed to create stock.move for {item_id}: {move_err}")
 
-                # Build lot map from staging data (item_id -> lot)
-                lot_map = {}
-                for bom_line in rec.line_ids_bom:
-                    if bom_line.item_id and bom_line.lot:
-                        lot_map[bom_line.item_id] = bom_line.lot
-                for prod_line in rec.line_ids_prod:
-                    if prod_line.item_id and prod_line.lot:
-                        lot_map[prod_line.item_id] = prod_line.lot
+                # Build lot map from grouped data (item_id, lot_name) -> lot object
+                for (item_id, lot_name), total_qty in bom_grouped.items():
+                    if not lot_name:
+                        continue
+                    bom_product = self.env['product.product'].sudo().search([
+                        ('default_code', '=', item_id)
+                    ], limit=1) if item_id else False
+                    if not bom_product or bom_product.tracking == 'none':
+                        continue
+                    lot = self.env['stock.lot'].sudo().search([
+                        ('product_id', '=', bom_product.id),
+                        ('name', '=', lot_name),
+                        ('company_id', '=', company.id if company else False),
+                    ], limit=1)
+                    if not lot:
+                        lot = self.env['stock.lot'].sudo().create({
+                            'product_id': bom_product.id,
+                            'name': lot_name,
+                            'company_id': company.id if company else self.env.company.id,
+                            'standard_price': price_map.get((item_id, lot_name), bom_product.standard_price or 0.0),
+                        })
+                    # Set lot on the matching stock.move.line
+                    for move in mo.move_raw_ids:
+                        if move.product_id.id != bom_product.id:
+                            continue
+                        for move_line in move.move_line_ids:
+                            if not move_line.lot_id:
+                                move_line.sudo().write({'lot_id': lot.id})
+                                break
 
                 # Set lot_producing_id from ProdJournalProd (first matching item_id lot)
                 prod_lot = False
@@ -152,35 +219,11 @@ class ProdTableStaging(models.Model):
                                 'product_id': product.id,
                                 'name': prod_line.lot,
                                 'company_id': company.id if company else self.env.company.id,
+                                'standard_price': product.standard_price or 0.0,
                             })
                         mo.sudo().write({'lot_producing_id': prod_lot.id})
                         break
-
-                # Set lots on stock.move.line
-                for move in mo.move_raw_ids | mo.move_finished_ids:
-                    if move.product_id.tracking in ('none', False):
-                        continue
-                    staging_lot = lot_map.get(move.product_id.default_code)
-                    if not staging_lot:
-                        continue
-                    for move_line in move.move_line_ids:
-                        if move_line.lot_id:
-                            continue
-                        lot = self.env['stock.lot'].sudo().search([
-                            ('product_id', '=', move.product_id.id),
-                            ('name', '=', staging_lot),
-                            ('company_id', '=', company.id if company else False),
-                        ], limit=1)
-                        if not lot:
-                            lot = self.env['stock.lot'].sudo().create({
-                                'product_id': move.product_id.id,
-                                'name': staging_lot,
-                                'company_id': company.id if company else self.env.company.id,
-                            })
-                        move_line.sudo().write({'lot_id': lot.id})
-
-                mo.qty_producing = total_qty
-                # mo.sudo().with_context(**ctx).button_mark_done()
+                mo.sudo().with_context(**ctx).button_mark_done()
 
                 # Mark ProdJournalProd records as done
                 for prod_line in rec.line_ids_prod:

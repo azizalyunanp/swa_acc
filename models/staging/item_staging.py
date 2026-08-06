@@ -13,6 +13,7 @@ class SwaItemStaging(models.Model):
     unit_id = fields.Char(string='Unit ID')
     type_item = fields.Char(string='Type Item')
     tracking = fields.Char(string='Tracking')
+    cost_price = fields.Float(string='Cost Price')
     is_executed = fields.Selection([
         ('No', 'No'),
         ('Yes', 'Yes')
@@ -68,6 +69,8 @@ class SwaItemStaging(models.Model):
                         'type': product_type,
                         'tracking': odoo_tracking,
                         'lot_valuated': odoo_tracking != 'none',
+                        'is_storable': odoo_tracking != 'none',
+                        'standard_price': rec.cost_price or 0.0,
                     })
                     rec.write({
                         'is_executed': 'Yes',

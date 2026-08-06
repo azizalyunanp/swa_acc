@@ -75,12 +75,13 @@ class SwaApiReceivedData(models.Model):
                             existing = self.env['swa.item.staging'].sudo().search_count([
                                 ('item_id', '=', item.get('ItemId'))
                             ])
+                            _logger.info(f"Record {record.id}: Item '{item.get('ItemId')}' existing_count={existing}")
                             if existing == 0:
                                 self.env['swa.item.staging'].sudo().create(self._filter_vals('swa.item.staging', vals))
                                 total_created += 1
                             else:
-                                logs.append(f"Item {item.get('ItemId')} already exists, skipping")
-                                _logger.info(f"Record {record.id}: Item {item.get('ItemId')} already exists, skipping")
+                                logs.append(f"Item {item.get('ItemId')} already exists (count={existing}), skipping")
+                                _logger.info(f"Record {record.id}: Item {item.get('ItemId')} already exists (count={existing}), skipping")
 
                         elif record.type_trans == 'CustVend':
                             existing = self.env['swa.cust.vend.staging'].sudo().search_count([
@@ -255,20 +256,10 @@ class SwaApiReceivedData(models.Model):
                                 vals['table_id'] = table.id
                             vals = self._filter_vals('swa.prod.journal.prod.staging', vals)
                             _logger.info(f"ProdJournalProd filtered vals: {vals}")
-                            existing = self.env['swa.prod.journal.prod.staging'].sudo().search_count([
-                                ('prod_id', '=', item.get('ProdId')),
-                                ('item_id', '=', item.get('ItemId')),
-                            ])
-                            logs.append(f"ProdJournalProd existing={existing}, filtered_vals={vals}")
-                            _logger.info(f"Record {record.id}: ProdJournalProd existing={existing}, filtered_vals={vals}")
-                            if existing == 0:
-                                created = self.env['swa.prod.journal.prod.staging'].sudo().create(vals)
-                                total_created += 1
-                                logs.append(f"Created ProdJournalProd ID={created.id}")
-                                _logger.info(f"Record {record.id}: Created ProdJournalProd ID={created.id}")
-                            else:
-                                logs.append(f"ProdJournalProd already exists, skipping")
-                                _logger.info(f"Record {record.id}: ProdJournalProd already exists, skipping")
+                            created = self.env['swa.prod.journal.prod.staging'].sudo().create(vals)
+                            total_created += 1
+                            logs.append(f"Created ProdJournalProd ID={created.id}")
+                            _logger.info(f"Record {record.id}: Created ProdJournalProd ID={created.id}")
 
                         elif record.type_trans in ('ProdJournalBom', 'ProdJournalBOM'):
                             logs.append(f"ProdJournalBom raw item={item}, vals={vals}")
@@ -280,20 +271,10 @@ class SwaApiReceivedData(models.Model):
                                 vals['table_id'] = table.id
                             vals = self._filter_vals('swa.prod.journal.bom.staging', vals)
                             _logger.info(f"ProdJournalBom filtered vals: {vals}")
-                            existing = self.env['swa.prod.journal.bom.staging'].sudo().search_count([
-                                ('prod_id', '=', item.get('ProdId')),
-                                ('item_id', '=', item.get('ItemId')),
-                            ])
-                            logs.append(f"ProdJournalBom existing={existing}, filtered_vals={vals}")
-                            _logger.info(f"Record {record.id}: ProdJournalBom existing={existing}, filtered_vals={vals}")
-                            if existing == 0:
-                                created = self.env['swa.prod.journal.bom.staging'].sudo().create(vals)
-                                total_created += 1
-                                logs.append(f"Created ProdJournalBom ID={created.id}")
-                                _logger.info(f"Record {record.id}: Created ProdJournalBom ID={created.id}")
-                            else:
-                                logs.append(f"ProdJournalBom already exists, skipping")
-                                _logger.info(f"Record {record.id}: ProdJournalBom already exists, skipping")
+                            created = self.env['swa.prod.journal.bom.staging'].sudo().create(vals)
+                            total_created += 1
+                            logs.append(f"Created ProdJournalBom ID={created.id}")
+                            _logger.info(f"Record {record.id}: Created ProdJournalBom ID={created.id}")
 
                         else:
                             has_error = True

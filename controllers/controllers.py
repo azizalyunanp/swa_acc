@@ -301,12 +301,7 @@ class StagingDataController(http.Controller):
         if table:
             vals['table_id'] = table.id
         vals = self._filter_vals('swa.prod.journal.prod.staging', vals)
-        existing = request.env['swa.prod.journal.prod.staging'].sudo().search_count([
-            ('prod_id', '=', data.get('ProdId')),
-            ('item_id', '=', data.get('ItemId')),
-        ])
-        if existing == 0:
-            request.env['swa.prod.journal.prod.staging'].sudo().create(vals)
+        request.env['swa.prod.journal.prod.staging'].sudo().create(vals)
 
     def _process_prod_journal_bom(self, data):
         vals = {self._to_snake_case(k): v for k, v in data.items()}
@@ -316,9 +311,4 @@ class StagingDataController(http.Controller):
         if table:
             vals['table_id'] = table.id
         vals = self._filter_vals('swa.prod.journal.bom.staging', vals)
-        existing = request.env['swa.prod.journal.bom.staging'].sudo().search_count([
-            ('prod_id', '=', data.get('ProdId')),
-            ('item_id', '=', data.get('ItemId')),
-        ])
-        if existing == 0:
-            request.env['swa.prod.journal.bom.staging'].sudo().create(vals)
+        request.env['swa.prod.journal.bom.staging'].sudo().create(vals)

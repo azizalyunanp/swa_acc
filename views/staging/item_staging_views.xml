@@ -10,6 +10,8 @@
                     <field name="item_name"/>
                     <field name="unit_id"/>
                     <field name="type_item"/>
+                    <field name="tracking" optional="show"/>
+                    <field name="cost_price" optional="show"/>
                     <field name="log" optional="show"/>
                     <field name="is_executed" widget="badge" decoration-success="is_executed == 'Yes'" decoration-info="is_executed == 'No'"/>
                 </list>
@@ -34,6 +36,8 @@
                             <group>
                                 <field name="unit_id"/>
                                 <field name="type_item"/>
+                                <field name="tracking"/>
+                                <field name="cost_price"/>
                                 <field name="is_executed"/>
                             </group>
                         </group>

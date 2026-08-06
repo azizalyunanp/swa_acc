@@ -27,6 +27,8 @@
             <field name="arch" type="xml">
                 <form string="API Received Data">
                     <header>
+                        <button name="action_process_staging" string="Process Staging" type="object"
+                                class="oe_highlight"/>
                         <field name="is_executed" widget="statusbar" statusbar_visible="No,Yes"/>
                     </header>
                     <sheet>
@@ -47,6 +49,9 @@
                         </group>
                         <group string="Data Trans">
                             <field name="data_trans" nolabel="1"/>
+                        </group>
+                        <group string="Log">
+                            <field name="log" nolabel="1"/>
                         </group>
                     </sheet>
                 </form>
@@ -93,6 +98,14 @@
                     Data received from external API calls via /synchronize_data endpoint will appear here.
                 </p>
             </field>
+        </record>
+
+        <record id="action_server_process_staging" model="ir.actions.server">
+            <field name="name">Process Staging</field>
+            <field name="model_id" ref="model_swa_api_received_data"/>
+            <field name="binding_model_id" ref="model_swa_api_received_data"/>
+            <field name="state">code</field>
+            <field name="code">records.action_process_staging()</field>
         </record>
 
         <!-- ============================================================
